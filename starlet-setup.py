@@ -25,17 +25,23 @@ def parse_args():
     formatter_class=argparse.RawDescriptionHelpFormatter,
     epilog="""
 Examples:
+  %(prog)s username/repo
+  %(prog)s username/repo --ssh
+  %(prog)s username/repo --build-dir build_name
+  %(prog)s username/repo --build-type Release
+  %(prog)s username/repo --no-build
   %(prog)s https://github.com/username/repo.git
-  %(prog)s https://github.com/username/repo.git --build-dir build_name
   %(prog)s git@github.com:username/repo.git
-  %(prog)s git@github.com:username/repo.git --no-build
-  %(prog)s git@github.com:username/repo.git --build-type Release
     """
   )
-
   parser.add_argument(
-    'repo_url',
-    help='GitHub repository URL (HTTPS or SSH)'
+    'repo',
+    help='Repository name (username/repo) or full GitHub URL'
+  )
+  parser.add_argument(
+    '--ssh',
+    action='store_true',
+    help='Use SSH instead of HTTPS for cloning'
   )
   parser.add_argument(
     '-b', '--build-type',
@@ -63,11 +69,29 @@ Examples:
     action='store_true',
     help='Show detailed command output'
   )
-
   return parser.parse_args()
-  
+
 
 # Helper Functions
+
+def resolve_repo_url(repo_input, use_ssh=False):
+  """
+  Convert repository input to full URL.
+
+  Args:
+    repo_input: Either 'username/repo' or full URL
+    use_ssh: Whether to use SSH protocol
+
+  Returns:
+    Full repository URL
+  """
+  if repo_input.startswith('http') or repo_input.startswith('git@'):
+    return repo_input
+
+  if use_ssh:
+    return f"git@github.com:{repo_input}.git"
+  else:
+    return f"https://github.com/{repo_input}.git"
 
 def check_prerequisites(verbose=False):
   """Check if required tools are installed."""
@@ -113,10 +137,10 @@ def run_command(cmd, cwd=None, verbose=False):
 def main():
   """Main entry point for Starlet Setup."""
   args = parse_args()
-    
   check_prerequisites(args.verbose)  
 
-  repo_name = Path(args.repo_url).stem.replace('.git', '')
+  repo_url = resolve_repo_url(args.repo, args.ssh)
+  repo_name = Path(repo_url).stem.replace('.git', '')
   if Path(repo_name).exists():
     print(f"Repository {repo_name} already exists")
     response = input("Update existing repository? (y/n): ")
@@ -125,7 +149,7 @@ def main():
       run_command(['git', 'pull'], cwd=repo_name, verbose=args.verbose)
   else:
     print(f"Cloning {repo_name}")
-    run_command(['git', 'clone', args.repo_url], verbose=args.verbose)
+    run_command(['git', 'clone', repo_url], verbose=args.verbose)
   print()
   
   build_path = Path(repo_name) / args.build_dir
