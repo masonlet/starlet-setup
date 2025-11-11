@@ -9,6 +9,7 @@ import sys
 import subprocess
 import shutil
 import argparse
+import json
 from pathlib import Path
 
 
@@ -21,6 +22,8 @@ def parse_args():
   Returns:
     Parsed arguments namespace
   """
+  config = load_config()
+
   parser = argparse.ArgumentParser(
     description="Starlet Setup - Quick setup script for CMake projects",
     formatter_class=argparse.RawDescriptionHelpFormatter,
@@ -39,18 +42,27 @@ Examples:
     %(prog)s --batch masonlet starlet-samples --ssh
     %(prog)s --batch masonlet starlet-samples --batch-dir my_starlet
     %(prog)s --batch masonlet starlet-image-sandbox --repos starlet-serializer
+  Config:
+    %(prog)s --init-config
     """
   )
   # Common arguments
   parser.add_argument(
     '--ssh',
     action='store_true',
+    default=get_config_value(config, 'defaults.ssh', False),
     help='Use SSH instead of HTTPS for cloning'
   )
   parser.add_argument(
     '-v', '--verbose',
     action='store_true',
+    default=get_config_value(config, 'defaults.verbose', False),
     help='Show detailed command output'
+  )
+  parser.add_argument(
+    '--init-config',
+    action='store_true',
+    help='Create a default config file in the current directory'
   )
   # Single repo mode arguments
   parser.add_argument(
@@ -61,17 +73,18 @@ Examples:
   parser.add_argument(
     '-b', '--build-type',
     choices=['Debug', 'Release', 'RelWithDebInfo', 'MinSizeRel'],
-    default='Debug',
+    default=get_config_value(config, 'defaults.build_type', 'Debug'),
     help='CMake build type (default: %(default)s)'
   )
   parser.add_argument(
     '-d', '--build-dir',
-    default='build',
+    default=get_config_value(config, 'defaults.build_dir', 'build'),
     help='Build directory name (default: %(default)s)'
   )
   parser.add_argument(
     '-n', '--no-build',
     action='store_true',
+    default=get_config_value(config, 'defaults.no_build', False),
     help='Skip building, only configure'
   )
   parser.add_argument(
@@ -88,7 +101,7 @@ Examples:
   )
   parser.add_argument(
     '--batch-dir',
-    default='build-batch',
+    default=get_config_value(config, 'defaults.batch_dir', 'build-batch'),
     help='Directory name for batch cloning (default: %(default)s)'
   )
   parser.add_argument(
@@ -98,6 +111,9 @@ Examples:
   )
   args = parser.parse_args()
 
+  if args.init_config:
+    return args
+
   if not args.batch and not args.repo:
     parser.error("Either provide a repository or use --batch mode")
 
@@ -105,6 +121,81 @@ Examples:
     parser.error("Cannot use both single repo and --batch mode")
 
   return args
+
+
+# Config functions
+
+def load_config():
+  """Load configuration from file, falling back to defaults."""
+  config_locations = [
+    Path('.starlet-setup.json'),
+    Path.home() / '.starlet-setup.json'
+  ]
+
+  for config_path in config_locations:
+    if config_path.exists():
+      try:
+        with open(config_path) as f:
+          return json.load(f)
+      except json.JSONDecodeError as e:
+        print(f"Warning: Invalid JSON in {config_path}: {e}")
+        continue
+
+  return {}
+
+
+def get_config_value(config, key, default):
+  """Get a config value with fallback to default."""
+  parts = key.split('.')
+  value = config
+  for part in parts:
+    if isinstance(value, dict) and part in value:
+      value = value[part]
+    else:
+      return default
+  return value
+
+
+def create_default_config():
+  """Create a default configuration file."""
+  default_config = {
+    "defaults": {
+      "ssh": False,
+      "build_type": "Debug",
+      "build_dir": "build",
+      "batch_dir": "build-batch",
+      "no_build": False,
+      "verbose": False      
+    },
+    "batch": {
+      "default_user": "masonlet",
+      "default_repos": [
+        "starlet-math",
+        "starlet-logger",
+        "starlet-controls",
+        "starlet-scene",
+        "starlet-graphics",
+        "starlet-serializer",
+        "starlet-engine"
+      ]
+    }
+  }
+
+  config_path = Path('.starlet-setup.json')
+
+  if config_path.exists():
+    if input(f"{config_path} already exists. Overwrite? (y/n): ").lower() != 'y':
+      print("Aborted.")
+      return
+
+  with open(config_path, 'w') as f:
+    json.dump(default_config, f, indent=2)
+
+  print(f"Created config file: {config_path.absolute()}")
+  print("\nEdit this file to customize your defaults.")
+  print("Config files are checked in this order:")
+  print(" 1. ./.starlet-setup.json (current directory)")
+  print(" 2. ~/.starlet-setup.json (home directory)")
 
 
 # Helper Functions
@@ -168,7 +259,7 @@ def run_command(cmd, cwd=None, verbose=False):
     sys.exit(1)
 
 
-def get_default_repos(user: str, test_repo: str) -> list[str]:
+def get_default_repos(config: dict, user: str, test_repo: str) -> list[str]:
   """
   Get the default list of Starlet repositories.
 
@@ -179,6 +270,13 @@ def get_default_repos(user: str, test_repo: str) -> list[str]:
   Returns:
     List of repository paths (username/repo format)
   """
+  default_repos = get_config_value(config, 'batch.default_repos', None)
+
+  if default_repos:
+    repos = [f"{user}/{repo}" for repo in default_repos]
+    repos.append(f"{user}/{test_repo}")
+    return repos
+
   return [
     f"{user}/starlet-math",
     f"{user}/starlet-logger",
@@ -205,10 +303,10 @@ def clone_repository(repo_path: str, target_dir: Path, use_ssh: bool, verbose: b
   repo_dir = target_dir / repo_name
 
   if repo_dir.exists():
-    print(f"  {repo_name} already exists")
+    print(f"\n  {repo_name} already exists")
     return 
   
-  print(f"  Cloning {repo_name}")
+  print(f"\n  Cloning {repo_name}")
   repo_url = resolve_repo_url(repo_path, use_ssh)
 
   try:
@@ -268,7 +366,7 @@ set_property(DIRECTORY ${{CMAKE_CURRENT_SOURCE_DIR}} PROPERTY VS_STARTUP_PROJECT
 
 # Main Functions
 
-def single_repo_mode(args):
+def single_repo_mode(args, config):
   """Handle single repository setup."""
   print("Starlet Setup: Single Repository Mode\n")
 
@@ -308,9 +406,15 @@ def single_repo_mode(args):
   print(f"\nProject finished in {repo_name}/{args.build_dir}")
 
 
-def batch_mode(args):
+def batch_mode(args, config):
   """Handle batch cloning and building of multiple repositories."""
   user, test_repo = args.batch
+
+  if not user:
+    user = get_config_value(config, 'batch.default_user', None)
+    if not user:
+      print("Error: No user specified and no default_user in config")
+      sys.exit(1)
 
   print("Starlet Setup: Batch Mode\n")
   print(f"User: {user}")
@@ -324,7 +428,7 @@ def batch_mode(args):
     if test_repo_path not in repos:
       repos.append(test_repo_path)
   else:
-    repos = get_default_repos(user, test_repo)
+    repos = get_default_repos(config, user, test_repo)
 
   batch_path = Path(args.batch_dir)
   print(f"Creating directory: {batch_path}")
@@ -349,10 +453,11 @@ def batch_mode(args):
   cmake_cmd = ['cmake', '-DBUILD_LOCAL=ON', '..']
   run_command(cmake_cmd, cwd=build_path, verbose=args.verbose)
 
-  print("\nBuilding project")
-  run_command(['cmake', '--build', '.'], cwd=build_path, verbose=args.verbose)
+  if not args.no_build:
+    print("\nBuilding project")
+    run_command(['cmake', '--build', '.'], cwd=build_path, verbose=args.verbose)
 
-  print("\nBuild complete")
+  print("\nSetup complete")
   print(f"Repositories in: {batch_path.absolute()}")
   print(f"Build output in: {build_path.absolute()}")
 
@@ -362,12 +467,18 @@ def batch_mode(args):
 def main():
   """Main entry point for Starlet Setup."""
   args = parse_args()
+
+  if args.init_config:
+    create_default_config()
+    return
+
   check_prerequisites(args.verbose)  
+  config = load_config()
 
   if args.batch:
-    batch_mode(args)
+    batch_mode(args, config)
   else:
-    single_repo_mode(args)
+    single_repo_mode(args, config)
 
  
 if __name__ == "__main__":

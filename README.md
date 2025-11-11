@@ -19,6 +19,8 @@ Supports both single repository setup and batch setup for mono-repo development.
   - Customize which repositories to include
   - Perfect for working across multiple interdependent projects
 
+<br>
+
 ## Prerequisites
 - Python 3.6+
 - Git
@@ -26,6 +28,25 @@ Supports both single repository setup and batch setup for mono-repo development.
 
 ## Installation
 Place `starlet-setup.py` in a convenient location (e.g., `~/github/`, `C:\Users\Username\github\`) so you can use it for all your CMake projects. No installation, just run the script with python.
+
+<br>
+
+## Configuration
+Starlet Setup supports persistent configuration through a JSON file, allowing you to save your preferred defaults (e.g., SSH mode, build directory, batch repositories).
+
+### 1. Initialize Config
+```bash
+# Create a default configuration file in your current directory.
+python starlet-setup.py --init-config
+```
+This will create a `.starlet-setup.json` that can be edited to customize your setup preferences.
+
+### 2. File Location
+Starlet Setup checks for configuration files in this order:
+- `./.starlet-setup.json` (current directory)
+- `~/.starlet-setup.json` (home directory)
+
+<br>
 
 ## Usage
 
