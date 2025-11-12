@@ -4,8 +4,10 @@
 ## Get latest from https://github.com/github/gitignore/blob/main/VisualStudio.gitignore
 
 **/.starlet-setup.json
+dist/
 build/
 build-batch/
+*.egg-info/
 
 # User-specific files
 *.rsuser

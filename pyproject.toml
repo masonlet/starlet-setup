@@ -1,0 +1,20 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "starlet-setup"
+version = "1.0.0"
+description = "Quick setup for CMake projects"
+readme = "README.md"
+requires-python = ">=3.6"
+license = {text= "MIT"}
+authors = [
+  {name = "Mason L'Etoile", email = "masonletoile@hotmail.com"}
+]
+
+[project.urls]
+Homepage = "https://github.com/masonlet/starlet-setup"
+
+[project.scripts]
+starlet-setup = "starlet_setup.__main__:main"

@@ -1,9 +1,9 @@
 # Starlet Setup
-
 A lightweight Python utility to quickly clone, configure, and build CMake projects — from single repos to full mono-repos.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
 [![Python 3.6+](https://img.shields.io/badge/python-3.6%2B-blue.svg)]()
+
 
 ## Table of Contents
 - [Features](#features)
@@ -15,6 +15,8 @@ A lightweight Python utility to quickly clone, configure, and build CMake projec
   - [Batch / Mono-Repo Mode](#batchmono-repo-mode)
   - [Profile Mode](#profile-mode-saved-configurations)
 - [License](#license)
+
+<br/>
 
 ## Features
 - **Single Repository Mode**:
@@ -38,13 +40,60 @@ A lightweight Python utility to quickly clone, configure, and build CMake projec
   - Manage multiple development environments effortlessly
   - Default profile includes all core Starlet modules
 
+<br/>
+
 ## Prerequisites
 - Python 3.6+
 - Git
 - CMake
 
 ## Installation
-Place `starlet-setup.py` in a convenient location (e.g., `~/github/`, `C:\Users\Username\github\`) so you can use it for all your CMake projects. No installation, just run the script with python.
+### From GitHub
+```bash
+pip install git+https://github.com/masonlet/starlet-setup.git
+```
+
+### From source
+```bash
+git clone https://github.com/masonlet/starlet-setup.git
+cd starlet-setup
+pip install -e .
+```
+
+Once installed, you can use the `starlet-setup` command from anywhere.   
+
+### ⚠️ Command not found? ⚠️
+If you get an error saying the command is not found, you may need to add Python's user scripts directory to your PATH:
+
+**Find your scripts directory**:
+```bash
+# Run this to find your exact scripts path
+python -c "import sysconfig; print(sysconfig.get_path('scripts'))"
+```
+
+**Then add it to your PATH**:
+
+**Linux/macOS**:
+```bash
+# Add to ~/.bashrc, ~/.zshrc, or equivalent
+export PATH="$HOME/.local/bin:$PATH"
+
+# Apply changes
+source ~/.bashrc # or equivalent
+```
+
+**Windows (Command Prompt)**:
+```cmd
+# Add to PATH via System Properties > Environment Variables
+# Add: %APPDATA%\Python\Scripts
+```
+
+Alternatively, you can run the script directly:
+```bash
+python -m starlet_setup username/repo
+```
+
+<br/>
 
 ## Configuration
 Starlet Setup supports persistent configuration through a JSON file, allowing you to save your preferred defaults (e.g., SSH mode, build directory, batch repositories).
@@ -52,7 +101,7 @@ Starlet Setup supports persistent configuration through a JSON file, allowing yo
 ### 1. Initialize Config
 ```bash
 # Create a default configuration file in your current directory.
-python starlet-setup.py --init-config
+starlet-setup --init-config
 ```
 This will create a `.starlet-setup.json` that can be edited to customize your setup preferences.
 
@@ -61,63 +110,63 @@ Starlet Setup checks for configuration files in this order:
 - `./.starlet-setup.json` (current directory)
 - `~/.starlet-setup.json` (home directory)
 
+<br/>
+
 ## Usage
 
 ### Single Repository Mode
-
 #### Basic Usage
 ```bash
 # Clone and build a repository via HTTPS
-python starlet-setup.py username/repo
-python starlet-setup.py https://github.com/username/repo.git
+starlet-setup username/repo
+starlet-setup https://github.com/username/repo.git
 
 # Clone and build a repository via SSH
-python starlet-setup.py username/repo --ssh
-python starlet-setup.py git@github.com:username/repo.git
+starlet-setup username/repo --ssh
+starlet-setup git@github.com:username/repo.git
 ```
 
 #### Advanced Usage
 ```bash
 # Specify build type (Debug, Release, RelWithDebInfo, MinSizeRel)
-python starlet-setup.py username/repo --build-type Release
+starlet-setup username/repo --build-type Release
 
 # Specify a custom build directory
-python starlet-setup.py username/repo --build-dir my-build
+starlet-setup username/repo --build-dir my-build
 
 # Only configure, skip building
-python starlet-setup.py username/repo --no-build
+starlet-setup username/repo --no-build
 
 # Clean the build directory before building
-python starlet-setup.py username/repo --clean
+starlet-setup username/repo --clean
 
 # Show verbose output for debugging
-python starlet-setup.py username/repo --verbose
+starlet-setup username/repo --verbose
 
 # Custom CMake args
-python starlet-setup.py username/repo --cmake-arg=-DCMAKE_CXX_COMPILER=clang++
+starlet-setup username/repo --cmake-arg=-DCMAKE_CXX_COMPILER=clang++
 ```
 
 ### Batch/Mono-Repo Mode
-
 #### Basic Usage
 ```bash
 # Clone and build default Starlet modules with a test repository
-python starlet-setup.py username/repo --batch 
+starlet-setup username/repo --batch 
 
 # Use SSH instead of HTTPS
-python starlet-setup.py username/repo --batch --ssh
+starlet-setup username/repo --batch --ssh
 
 # Clone non-default repositories
-python starlet-setup.py username/repo --batch --repos user/lib1 user/lib2
+starlet-setup username/repo --batch --repos user/lib1 user/lib2
 ```
 
 #### Advanced Usage
 ```bash
 # Multiple flags
-python starlet-setup.py username/repo --batch --verbose --batch-dir my-starlet
+starlet-setup username/repo --batch --verbose --batch-dir my-starlet
 
 # Custom CMake args
-python starlet-setup.py username/repo --batch --cmake-arg=-DCMAKE_CXX_COMPILER=clang++
+starlet-setup username/repo --batch --cmake-arg=-DCMAKE_CXX_COMPILER=clang++
 ```
 
 #### Default Repositories (🚀 Starlet Ecosystem)
@@ -159,26 +208,28 @@ Save frequently used batch configurations as named profiles for easy re-use.
 #### Managing Profiles
 ```bash
 # Add a new profile
-python starlet-setup.py --profile-add myprofile user/lib1 user/lib2
+starlet-setup --profile-add myprofile user/lib1 user/lib2
 
 # List all saved profiles
-python starlet-setup.py --list-profiles
+starlet-setup --list-profiles
 
 # Remove a profile
-python starlet-setup.py --profile-remove myprofile
+starlet-setup --profile-remove myprofile
 ```
 
 #### Using Profiles
 ```bash
 # Use the default profile
-python starlet-setup.py username/repo --profile
+starlet-setup username/repo --profile
 
 # Use a named profile
-python starlet-setup.py username/repo --profile myprofile
+starlet-setup username/repo --profile myprofile
 
 # Use a profile with SSH
-python starlet-setup.py username/repo --profile myprofile --ssh
+starlet-setup username/repo --profile myprofile --ssh
 ```
+
+<br/>
 
 ## License
 MIT License — see [LICENSE](./LICENSE) for details.
