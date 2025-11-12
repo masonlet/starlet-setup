@@ -1,7 +1,20 @@
 # Starlet Setup
 
-Quick setup script for CMake projects. Clone, configure, and build repositories with minimal effort.
-Supports both single repository setup and batch setup for mono-repo development.
+A lightweight Python utility to quickly clone, configure, and build CMake projects — from single repos to full mono-repos.
+
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
+[![Python 3.6+](https://img.shields.io/badge/python-3.6%2B-blue.svg)]()
+
+## Table of Contents
+- [Features](#features)
+- [Prerequisites](#prerequisites)
+- [Installation](#installation)
+- [Configuration](#configuration)
+- [Usage](#usage)
+  - [Single Repository Mode](#single-repository-mode)
+  - [Batch / Mono-Repo Mode](#batchmono-repo-mode)
+  - [Profile Mode](#profile-mode-saved-configurations)
+- [License](#license)
 
 ## Features
 - **Single Repository Mode**:
@@ -25,8 +38,6 @@ Supports both single repository setup and batch setup for mono-repo development.
   - Manage multiple development environments effortlessly
   - Default profile includes all core Starlet modules
 
-<br>
-
 ## Prerequisites
 - Python 3.6+
 - Git
@@ -34,8 +45,6 @@ Supports both single repository setup and batch setup for mono-repo development.
 
 ## Installation
 Place `starlet-setup.py` in a convenient location (e.g., `~/github/`, `C:\Users\Username\github\`) so you can use it for all your CMake projects. No installation, just run the script with python.
-
-<br>
 
 ## Configuration
 Starlet Setup supports persistent configuration through a JSON file, allowing you to save your preferred defaults (e.g., SSH mode, build directory, batch repositories).
@@ -51,8 +60,6 @@ This will create a `.starlet-setup.json` that can be edited to customize your se
 Starlet Setup checks for configuration files in this order:
 - `./.starlet-setup.json` (current directory)
 - `~/.starlet-setup.json` (home directory)
-
-<br>
 
 ## Usage
 
@@ -172,3 +179,6 @@ python starlet-setup.py username/repo --profile myprofile
 # Use a profile with SSH
 python starlet-setup.py username/repo --profile myprofile --ssh
 ```
+
+## License
+MIT License — see [LICENSE](./LICENSE) for details.
