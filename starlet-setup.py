@@ -29,23 +29,32 @@ def parse_args():
     formatter_class=argparse.RawDescriptionHelpFormatter,
     epilog="""
 Examples:
-  Single Repository:
-    %(prog)s username/repo
-    %(prog)s username/repo --ssh
-    %(prog)s username/repo --build-dir build_name
-    %(prog)s username/repo --build-type Release
-    %(prog)s username/repo --no-build
+  Single Repository Mode:
     %(prog)s https://github.com/username/repo.git
     %(prog)s git@github.com:username/repo.git
-  Batch Setup:
-    %(prog)s --batch masonlet starlet-samples
-    %(prog)s --batch masonlet starlet-samples --ssh
-    %(prog)s --batch masonlet starlet-samples --batch-dir my_starlet
-    %(prog)s --batch masonlet starlet-image-sandbox --repos starlet-serializer
+    %(prog)s username/repo
+    %(prog)s username/repo --ssh
+    %(prog)s username/repo --no-build
+    %(prog)s username/repo --build-dir build_name --build-type Release
+
+  Batch Repository Mode:
+    %(prog)s username/repo --batch --repos user/lib1 user/lib2 user/lib3
+    %(prog)s username/repo --batch --ssh --batch-dir my_workspace
+
+  Profile Repository Mode:
+    %(prog)s username/repo --profile
+    %(prog)s username/repo --profile myprofile
+
+  Profile Management:
+    %(prog)s --list-profiles
+    %(prog)s --profile-add myprofile user/lib1 user/lib2 user/lib3
+    %(prog)s --profile-remove myprofile
+
   Config:
     %(prog)s --init-config
     """
   )
+
   # Common arguments
   parser.add_argument(
     '--ssh',
@@ -60,22 +69,38 @@ Examples:
     help='Show detailed command output'
   )
   parser.add_argument(
-    '--init-config',
-    action='store_true',
-    help='Create a default config file in the current directory'
-  )
-  parser.add_argument(
     '--cmake-arg',
     nargs='*',
     default=None,
     help='Additional CMake arguments (e.g., --cmake-arg=-D_BUILD_TESTS=ON)'
   )
-  # Single repo mode arguments
+
+  # Configuration arguments
   parser.add_argument(
-    'repo',
-    nargs='?',
-    help='Repository name (username/repo) or full GitHub URL'
+    '--init-config',
+    action='store_true',
+    help='Create a default config file in the current directory'
   )
+
+  # Profile management arguments
+  parser.add_argument(
+    '--profile-add',
+    nargs='+',
+    metavar=('NAME', 'REPO'),
+    help='Add a new profile: NAME REPO1 [REPO2 ...]'
+  )
+  parser.add_argument(
+    '--profile-remove',
+    metavar='NAME',
+    help='Remove a saved profile'
+  )
+  parser.add_argument(
+    '--list-profiles',
+    action='store_true',
+    help='List all saved profiles'
+  )
+
+  # Build arguments
   parser.add_argument(
     '-b', '--build-type',
     choices=['Debug', 'Release', 'RelWithDebInfo', 'MinSizeRel'],
@@ -98,12 +123,19 @@ Examples:
     action='store_true',
     help='Clean build directory before building'
   )
+
+  # Repository argument
+  parser.add_argument(
+    'repo',
+    nargs='?',
+    help='Repository name (username/repo) or full GitHub URL'
+  )
+  
   # Batch repo mode arguments
   parser.add_argument(
     '--batch',
-    nargs=2,
-    metavar=('USER', 'TEST_REPO'),
-    help='Batch mode: clone multiple repositories (USER TEST_REPO)'
+    action='store_true',
+    help='Batch mode: clone multiple repositories along with test repo'
   )
   parser.add_argument(
     '--batch-dir',
@@ -112,24 +144,37 @@ Examples:
   )
   parser.add_argument(
     '--repos',
-    nargs='*',
-    help='Custom list of repositories to clone in batch mode'
+    nargs='+',
+    metavar='REPO',
+    help='List of library repositories to clone in batch mode'
   )
+  parser.add_argument(
+    '--profile',
+    nargs='?',
+    const='default',
+    metavar='NAME',
+    help='Use saved profile for library repositories (uses "default" if no name given)'
+  )
+
   args = parser.parse_args()
 
-  if args.init_config:
+  if args.init_config or args.list_profiles or args.profile_add or args.profile_remove:
     return args
 
-  if not args.batch and not args.repo:
-    parser.error("Either provide a repository or use --batch mode")
+  if not args.repo:
+    parser.error("Repository argument is required")
 
-  if args.batch and args.repo:
-    parser.error("Cannot use both single repo and --batch mode")
+  if args.batch and args.profile:
+    parser.error("Cannot use both --batch and --profile")
+
+  if args.repos and not args.batch:
+    parser.error("--repos requires --batch mode")
 
   return args
 
 
 # Config functions
+
 
 def load_config():
   """Load configuration from file, falling back to defaults."""
@@ -148,6 +193,18 @@ def load_config():
         continue
 
   return {}
+
+
+def save_config(config):
+  """Save configuration to a file."""
+  config_path = Path('.starlet-setup.json')
+  if not config_path.exists():
+    config_path = Path.home() / '.starlet-setup.json'
+
+  with open(config_path, 'w') as f:
+    json.dump(config, f, indent=2)
+
+  return config_path
 
 
 def get_config_value(config, key, default):
@@ -174,16 +231,15 @@ def create_default_config():
       "verbose": False,   
       "cmake_arg": []
     },
-    "batch": {
-      "default_user": "masonlet",
-      "default_repos": [
-        "starlet-math",
-        "starlet-logger",
-        "starlet-controls",
-        "starlet-scene",
-        "starlet-graphics",
-        "starlet-serializer",
-        "starlet-engine"
+    "profiles": {
+      "default": [
+        "masonlet/starlet-math",
+        "masonlet/starlet-logger",
+        "masonlet/starlet-controls",
+        "masonlet/starlet-scene",
+        "masonlet/starlet-graphics",
+        "masonlet/starlet-serializer",
+        "masonlet/starlet-engine"
       ]
     }
   }
@@ -199,13 +255,29 @@ def create_default_config():
     json.dump(default_config, f, indent=2)
 
   print(f"Created config file: {config_path.absolute()}")
-  print("\nEdit this file to customize your defaults.")
-  print("Config files are checked in this order:")
+  print("Edit this file to customize your defaults.")
+  print("\nConfig files are checked in this order:")
   print(" 1. ./.starlet-setup.json (current directory)")
   print(" 2. ~/.starlet-setup.json (home directory)")
 
 
 # Helper Functions
+
+def check_prerequisites(verbose=False):
+  """Check if required tools are installed."""
+  required = ['git', 'cmake']
+  missing = []
+
+  for tool in required:
+    if not shutil.which(tool):
+      missing.append(tool)
+    elif verbose:
+      print(f"Found {tool}")
+
+  if missing:
+    print(f"Error: Missing required tools: {', '.join(missing)}")
+    sys.exit(1)
+
 
 def resolve_repo_url(repo_input, use_ssh=False):
   """
@@ -225,22 +297,6 @@ def resolve_repo_url(repo_input, use_ssh=False):
     return f"git@github.com:{repo_input}.git"
   else:
     return f"https://github.com/{repo_input}.git"
-
-
-def check_prerequisites(verbose=False):
-  """Check if required tools are installed."""
-  required = ['git', 'cmake']
-  missing = []
-
-  for tool in required:
-    if not shutil.which(tool):
-      missing.append(tool)
-    elif verbose:
-      print(f"Found {tool}")
-
-  if missing:
-    print(f"Error: Missing required tools: {', '.join(missing)}")
-    sys.exit(1)
 
 
 def run_command(cmd, cwd=None, verbose=False):
@@ -266,33 +322,28 @@ def run_command(cmd, cwd=None, verbose=False):
     sys.exit(1)
 
 
-def get_default_repos(config: dict, user: str, test_repo: str) -> list[str]:
+def get_default_repos(config: dict) -> list[str]:
   """
   Get the default list of Starlet repositories.
 
   Args:
-    user: GitHub username
-    test_repo: Test repository name
+    config: Configuration dictionary
 
   Returns:
     List of repository paths (username/repo format)
   """
   default_repos = get_config_value(config, 'batch.default_repos', None)
-
   if default_repos:
-    repos = [f"{user}/{repo}" for repo in default_repos]
-    repos.append(f"{user}/{test_repo}")
-    return repos
+    return list(default_repos)
 
   return [
-    f"{user}/starlet-math",
-    f"{user}/starlet-logger",
-    f"{user}/starlet-controls",
-    f"{user}/starlet-scene",
-    f"{user}/starlet-graphics",
-    f"{user}/starlet-serializer",
-    f"{user}/starlet-engine",
-    f"{user}/{test_repo}"
+    "masonlet/starlet-math",
+    "masonlet/starlet-logger",
+    "masonlet/starlet-controls",
+    "masonlet/starlet-scene",
+    "masonlet/starlet-graphics",
+    "masonlet/starlet-serializer",
+    "masonlet/starlet-engine"
   ]
 
 
@@ -329,7 +380,7 @@ def create_batch_cmakelists(batch_dir: Path, test_repo: str, repos: list[str]):
 
   Args:
     batch_dir: Directory containing all cloned repos
-    test_repo: Name of the test repository (startup project)
+    test_repo: Test repository name
     repos: List of all repository paths that were cloned
   """
   module_names = [repo.split('/')[-1] for repo in repos]
@@ -368,36 +419,124 @@ set_property(DIRECTORY ${{CMAKE_CURRENT_SOURCE_DIR}} PROPERTY VS_STARTUP_PROJECT
 
   cmake_file = batch_dir / "CMakeLists.txt"
   cmake_file.write_text(cmake_content)
-  print(f"Created root CMakeLists.txt at {batch_dir}")
+  print(f"Created root CMakeLists.txt at {batch_dir}\n")
 
 
-# Main Functions
+# Profile Functions
+
+def add_profile(config, args_list):
+  """
+  Add a new profile to the configuration.
+
+  Args:
+    config: Configuration dictionary
+    args_list: [name, repo1, repo2, ...]
+  """
+  if len(args_list) < 2:
+    print("Error: --profile-add requires NAME REPO1 [REPO2 ...]")
+    sys.exit(1)
+
+  name = args_list[0]
+  repos = args_list[1:]
+
+  if 'profiles' not in config:
+    config['profiles'] = {}
+
+  if name in config['profiles']:
+    print(f"Warning: Profile '{name}' already exists.")
+    if input("Overwrite? (y/n): ").lower() != 'y':
+      print("Aborted.")
+      return
+    
+  config['profiles'][name] = repos
+
+  config_path = save_config(config)
+  print(f"Profile '{name}' added successfully")
+  print(f"Configuration saved to: {config_path}")
+  print(f"Profile details:")
+  print(f"  Repositories ({len(repos)}):")
+  for repo in repos:
+    print(f"    - {repo}")
+  print(f"\nUsage: {Path(sys.argv[0]).name} username/test-repo --profile {name}")
+
+
+def remove_profile(config, name):
+  """
+  Remove a profile from the configuration.
+
+  Args:
+    config: Configuration dictionary
+    name: Profile name to remove
+  """
+  if 'profiles' not in config or name not in config['profiles']:
+    print(f"Warning: Profile '{name}' not found.")
+    return
+  
+  repos = config['profiles'][name]
+  print(f"Profile '{name}'")
+  print(f"  Libraries: {len(repos)}")
+  for repo in repos:
+    print(f"    - {repo}")
+
+  if input("\nAre you sure you want to remove this profile? (y/n): ").lower() != 'y':
+    print("Aborted.")
+    return
+  
+  del config['profiles'][name]
+  config_path = save_config(config)
+  print(f"Profile '{name}' removed successfully")
+  print(f"Configuration saved to: {config_path}")
+
+
+def list_profiles(config):
+  """List all configured profiles."""
+  print("Available profiles:")
+  profiles = get_config_value(config, 'profiles', {})
+
+  if not profiles:
+    print("  No profiles configured.")
+    print("  Run with --init-config to create a default configuration.")
+    return
+
+  print("Configured profiles:\n")
+  for profile_name, repos in profiles.items():
+    print(f"  {profile_name}")
+    print(f"  Repositories: ({len(repos)}):")
+    for repo in repos:
+      print(f"      - {repo}")
+    print()
+
+
+# Mode Functions
+
 
 def single_repo_mode(args, config):
   """Handle single repository setup."""
-  print("Starlet Setup: Single Repository Mode\n")
-
   repo_url = resolve_repo_url(args.repo, args.ssh)
   repo_name = Path(repo_url).stem.replace('.git', '')
+
+  print("Starlet Setup: Single Repository Mode")
+  print(f"  Repository: {repo_name}")
+  print(f"  Clone Method: {'SSH' if args.ssh else 'HTTPS'}\n")
   
   if Path(repo_name).exists():
     print(f"Repository {repo_name} already exists")
     if input("Update existing repository? (y/n): ").lower() == 'y':
-      print(f"Updating {repo_name}")
+      print(f"Updating {repo_name}\n")
       run_command(['git', 'pull'], cwd=repo_name, verbose=args.verbose)
   else:
-    print(f"Cloning {repo_name}")
+    print(f"Cloning {repo_name}\n")
     run_command(['git', 'clone', repo_url], verbose=args.verbose)
   
   build_path = Path(repo_name) / args.build_dir
   if args.clean and build_path.exists():
-    print("\nCleaning build directory")
+    print("Cleaning build directory\n")
     shutil.rmtree(build_path)
 
-  print(f"Creating build directory: {args.build_dir}")
+  print(f"Creating build directory: {args.build_dir}\n")
   build_path.mkdir(exist_ok=True)
 
-  print("\nConfiguring with CMake")
+  print("Configuring with CMake\n")
   cmake_cmd = ['cmake', '..', f'-DCMAKE_BUILD_TYPE={args.build_type}']
   cmake_arg = args.cmake_arg if args.cmake_arg is not None else get_config_value(config, 'defaults.cmake_arg', [])
   if cmake_arg:
@@ -405,59 +544,95 @@ def single_repo_mode(args, config):
   run_command(cmake_cmd, cwd=build_path, verbose=args.verbose)
 
   if not args.no_build:
-    print("\nBuilding project")
+    print("Building project\n")
     build_cmd = ['cmake', '--build', '.']
     if args.build_type:
       build_cmd.extend(['--config', args.build_type])
     run_command(build_cmd, cwd=build_path, verbose=args.verbose)
 
-  print(f"\nProject finished in {repo_name}/{args.build_dir}")
+  print(f"Project finished in {repo_name}/{args.build_dir}")
 
 
 def batch_mode(args, config):
   """Handle batch cloning and building of multiple repositories."""
-  user, test_repo = args.batch
+  test_repo_input = args.repo
 
-  if not user:
-    user = get_config_value(config, 'batch.default_user', None)
-    if not user:
-      print("Error: No user specified and no default_user in config")
+  if test_repo_input.startswith('http') or test_repo_input.startswith('git@'):
+    if 'github.com/' in test_repo_input or 'github.com:' in test_repo_input:
+      parts = test_repo_input.split('/')[-2:]
+      test_repo = f"{parts[0].split(':')[-1]}/{parts[1].replace('.git', '')}"
+    else:
+      print("Error: Could not parse repository URL")
+      sys.exit(1)
+  elif '/' in test_repo_input:
+    test_repo = test_repo_input
+  else:
+    print("Error: Repository must be in format 'username/repo' for batch mode")
+    sys.exit(1)
+
+  test_repo_name = test_repo.split('/')[-1]
+
+  if args.profile:
+    profiles = get_config_value(config, 'profiles', {})
+
+    if args.profile not in profiles:
+      print(f"Error: Profile '{args.profile}' not found\n")
+      list_profiles(config)
       sys.exit(1)
 
-  print("Starlet Setup: Batch Mode\n")
-  print(f"User: {user}")
-  print(f"Test Repository: {test_repo}")
-  print(f"Clone Method: {'SSH' if args.ssh else 'HTTPS'}")
-  print(f"Batch Directory: {args.batch_dir}\n")
+    profile_repos = profiles[args.profile]
 
-  if args.repos:
-    repos = [f"{user}/{repo}" if '/' not in repo else repo for repo in args.repos]
-    test_repo_path = f"{user}/{test_repo}"
-    if test_repo_path not in repos:
-      repos.append(test_repo_path)
+    if not profile_repos:
+      print(f"Error: Profile '{args.profile}' has no repositories")
+      sys.exit(1)
+
+    print(f"Starlet Setup: Profile Repository Mode")
+    print(f"  Profile: {args.profile}")
+    print(f"  Test Repository: {test_repo}")
+    print(f"  Clone Method: {'SSH' if args.ssh else 'HTTPS'}")
+    print(f"  Directory: {args.batch_dir}")
+    print(f"  Libraries: {len(profile_repos)}\n")
+    repos = list(profile_repos) 
+
+  elif args.repos:
+    print(f"Starlet Setup: Batch Repository Mode")
+    print(f"  Test Repository: {test_repo}")
+    print(f"  Clone Method: {'SSH' if args.ssh else 'HTTPS'}")
+    print(f"  Directory: {args.batch_dir}\n") 
+    repos = list(args.repos)
+
   else:
-    repos = get_default_repos(config, user, test_repo)
+    print(f"Starlet Setup: Batch Repository Mode")
+    print(f"  Test Repository: {test_repo}")
+    print(f"  Clone Method: {'SSH' if args.ssh else 'HTTPS'}")
+    print(f"  Directory: {args.batch_dir}\n") 
+    repos = get_default_repos(config)
+
+  if test_repo not in repos:
+    repos.append(test_repo)
+
+  print(f"Total repositories: {len(repos)}\n")
 
   batch_path = Path(args.batch_dir)
-  print(f"Creating directory: {batch_path}")
+  print(f"Creating directory: {batch_path}\n")
   batch_path.mkdir(exist_ok=True)
 
-  print("\nCloning repositories")
+  print("Cloning repositories")
   for repo in repos:
     try:
       clone_repository(repo, batch_path, args.ssh, args.verbose)
     except SystemExit:
       sys.exit(1)
-  print(f"Finished cloning ({len(repos)} repositories)")
+  print(f"\n  Finished cloning ({len(repos)} repositories)\n")
   
-  print("\nCreating mono-repo configuration")
-  create_batch_cmakelists(batch_path, test_repo, repos)
+  print("Creating mono-repo configuration")
+  create_batch_cmakelists(batch_path, test_repo_name, repos)
 
-  print("Building project")
+  print("Creating build directory\n")
   build_path = batch_path / 'build' 
   build_path.mkdir(exist_ok=True)
   
-  print(f"\nConfiguring with CMake in {build_path}")
+  print(f"Configuring with CMake in {build_path}\n")
   cmake_cmd = ['cmake', '-DBUILD_LOCAL=ON', '..']
   cmake_arg = args.cmake_arg if args.cmake_arg is not None else get_config_value(config, 'defaults.cmake_arg', [])
   if cmake_arg:
@@ -465,10 +640,10 @@ def batch_mode(args, config):
   run_command(cmake_cmd, cwd=build_path, verbose=args.verbose)
 
   if not args.no_build:
-    print("\nBuilding project")
+    print("Building project\n")
     run_command(['cmake', '--build', '.'], cwd=build_path, verbose=args.verbose)
 
-  print("\nSetup complete")
+  print("Setup complete")
   print(f"Repositories in: {batch_path.absolute()}")
   print(f"Build output in: {build_path.absolute()}")
 
@@ -483,10 +658,23 @@ def main():
     create_default_config()
     return
 
-  check_prerequisites(args.verbose)  
   config = load_config()
 
-  if args.batch:
+  if args.list_profiles:
+    list_profiles(config)
+    return
+  
+  if args.profile_add:
+    add_profile(config, args.profile_add)
+    return
+  
+  if args.profile_remove:
+    remove_profile(config, args.profile_remove)
+    return
+
+  check_prerequisites(args.verbose) 
+
+  if args.batch or args.profile:
     batch_mode(args, config)
   else:
     single_repo_mode(args, config)

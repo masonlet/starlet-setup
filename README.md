@@ -19,6 +19,12 @@ Supports both single repository setup and batch setup for mono-repo development.
   - Customize which repositories to include
   - Perfect for working across multiple interdependent projects
 
+- **Profile Mode**:
+  - Save frequently used batch configuration as named profiles
+  - Quick access to predefined repository sets
+  - Manage multiple development environments effortlessly
+  - Default profile includes all core Starlet modules
+
 <br>
 
 ## Prerequisites
@@ -69,7 +75,7 @@ python starlet-setup.py git@github.com:username/repo.git
 python starlet-setup.py username/repo --build-type Release
 
 # Specify a custom build directory
-python starlet-setup.py username/repo --build-dir my_build
+python starlet-setup.py username/repo --build-dir my-build
 
 # Only configure, skip building
 python starlet-setup.py username/repo --no-build
@@ -89,37 +95,34 @@ python starlet-setup.py username/repo --cmake-arg=-DCMAKE_CXX_COMPILER=clang++
 #### Basic Usage
 ```bash
 # Clone and build default Starlet modules with a test repository
-python starlet-setup.py --batch masonlet starlet-samples
+python starlet-setup.py username/repo --batch 
 
 # Use SSH instead of HTTPS
-python starlet-setup.py --batch masonlet starlet-samples --ssh
+python starlet-setup.py username/repo --batch --ssh
 
-# Specify custom batch directory
-python starlet-setup.py --batch masonlet starlet-samples --batch-dir my_starlet
+# Clone non-default repositories
+python starlet-setup.py username/repo --batch --repos user/lib1 user/lib2
 ```
 
 #### Advanced Usage
 ```bash
-# Clone non-default projects
-python starlet-setup.py --batch username test_repo --repos library_1 library_2
-
-# Verbose output for debugging
-python starlet-setup.py --batch masonlet starlet-samples --verbose
+# Multiple flags
+python starlet-setup.py username/repo --batch --verbose --batch-dir my-starlet
 
 # Custom CMake args
-python starlet-setup.py --batch masonlet starlet-samples --cmake-arg=-DCMAKE_CXX_COMPILER=clang++
+python starlet-setup.py username/repo --batch --cmake-arg=-DCMAKE_CXX_COMPILER=clang++
 ```
 
 #### Default Repositories (🚀 Starlet Ecosystem)
-When using batch mode without `--repos`, the following repositories are cloned by default:
-- `starlet-math`
-- `starlet-logger`
-- `starlet-controls`
-- `starlet-scene`
-- `starlet-graphics`
-- `starlet-serializer`
-- `starlet-engine`
-- Your specified test repository (e.g., `starlet-samples`)
+When using batch mode without `--repos` or `--profile`, the script clones repositories based on your configuration. The default profile includes:
+- `masonlet/starlet-math`
+- `masonlet/starlet-logger`
+- `masonlet/starlet-controls`
+- `masonlet/starlet-scene`
+- `masonlet/starlet-graphics`
+- `masonlet/starlet-serializer`
+- `masonlet/starlet-engine`
+- Your specified test repository (e.g., `masonlet/starlet-samples`)
 
 #### Mono-Repo Structure
 Batch mode creates a workspace like this:
@@ -143,20 +146,29 @@ This structure allows you to:
 - Debug across module boundaries
 - Commit changes without digging into build directories
 
-## Examples
+### Profile Mode (Saved Configurations)
+Save frequently used batch configurations as named profiles for easy re-use.
 
-### Single Repository
+#### Managing Profiles
 ```bash
-cd ~/github
-python starlet-setup.py masonlet/task-tracker
+# Add a new profile
+python starlet-setup.py --profile-add myprofile user/lib1 user/lib2
+
+# List all saved profiles
+python starlet-setup.py --list-profiles
+
+# Remove a profile
+python starlet-setup.py --profile-remove myprofile
 ```
 
-### Batch Setup for Development
+#### Using Profiles
 ```bash
-# Set up complete Starlet environment for development
-cd ~/github
-python starlet-setup.py --batch masonlet starlet-samples
+# Use the default profile
+python starlet-setup.py username/repo --profile
 
-# Set up with only specific modules
-python starlet-setup.py --batch masonlet starlet-image-sandbox --repos starlet-serializer starlet-logger starlet-math
+# Use a named profile
+python starlet-setup.py username/repo --profile myprofile
+
+# Use a profile with SSH
+python starlet-setup.py username/repo --profile myprofile --ssh
 ```
