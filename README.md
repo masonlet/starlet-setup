@@ -79,6 +79,9 @@ python starlet-setup.py username/repo --clean
 
 # Show verbose output for debugging
 python starlet-setup.py username/repo --verbose
+
+# Custom CMake args
+python starlet-setup.py username/repo --cmake-arg=-DCMAKE_CXX_COMPILER=clang++
 ```
 
 ### Batch/Mono-Repo Mode
@@ -102,6 +105,9 @@ python starlet-setup.py --batch username test_repo --repos library_1 library_2
 
 # Verbose output for debugging
 python starlet-setup.py --batch masonlet starlet-samples --verbose
+
+# Custom CMake args
+python starlet-setup.py --batch masonlet starlet-samples --cmake-arg=-DCMAKE_CXX_COMPILER=clang++
 ```
 
 #### Default Repositories (🚀 Starlet Ecosystem)

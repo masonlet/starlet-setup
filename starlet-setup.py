@@ -64,6 +64,12 @@ Examples:
     action='store_true',
     help='Create a default config file in the current directory'
   )
+  parser.add_argument(
+    '--cmake-arg',
+    nargs='*',
+    default=None,
+    help='Additional CMake arguments (e.g., --cmake-arg=-D_BUILD_TESTS=ON)'
+  )
   # Single repo mode arguments
   parser.add_argument(
     'repo',
@@ -165,7 +171,8 @@ def create_default_config():
       "build_dir": "build",
       "batch_dir": "build-batch",
       "no_build": False,
-      "verbose": False      
+      "verbose": False,   
+      "cmake_arg": []
     },
     "batch": {
       "default_user": "masonlet",
@@ -392,15 +399,16 @@ def single_repo_mode(args, config):
 
   print("\nConfiguring with CMake")
   cmake_cmd = ['cmake', '..', f'-DCMAKE_BUILD_TYPE={args.build_type}']
+  cmake_arg = args.cmake_arg if args.cmake_arg is not None else get_config_value(config, 'defaults.cmake_arg', [])
+  if cmake_arg:
+    cmake_cmd.extend(cmake_arg)
   run_command(cmake_cmd, cwd=build_path, verbose=args.verbose)
 
   if not args.no_build:
     print("\nBuilding project")
     build_cmd = ['cmake', '--build', '.']
-
     if args.build_type:
       build_cmd.extend(['--config', args.build_type])
-
     run_command(build_cmd, cwd=build_path, verbose=args.verbose)
 
   print(f"\nProject finished in {repo_name}/{args.build_dir}")
@@ -451,6 +459,9 @@ def batch_mode(args, config):
   
   print(f"\nConfiguring with CMake in {build_path}")
   cmake_cmd = ['cmake', '-DBUILD_LOCAL=ON', '..']
+  cmake_arg = args.cmake_arg if args.cmake_arg is not None else get_config_value(config, 'defaults.cmake_arg', [])
+  if cmake_arg:
+    cmake_cmd.extend(cmake_arg)
   run_command(cmake_cmd, cwd=build_path, verbose=args.verbose)
 
   if not args.no_build:
