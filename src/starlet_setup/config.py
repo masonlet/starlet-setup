@@ -1,8 +1,18 @@
+"""Configuration file management"""
+
+
 import json
 from pathlib import Path
+from typing import Any
 
-def load_config():
-  """Load configuration from file, falling back to defaults."""
+
+def load_config() -> dict:
+  """
+  Load configuration from file, falling back to defaults.
+  
+  Returns:
+    Configuration dictionary, empty dict if not config found
+  """
   config_locations = [
     Path('.starlet-setup.json'),
     Path.home() / '.starlet-setup.json'
@@ -20,8 +30,16 @@ def load_config():
   return {}
 
 
-def save_config(config):
-  """Save configuration to a file."""
+def save_config(config) -> Path:
+  """
+  Save configuration to a file.
+
+  Args:
+    config: Configuration dictionary to save
+
+  Returns:
+      Path where config was saved
+  """
   config_path = Path('.starlet-setup.json')
   if not config_path.exists():
     config_path = Path.home() / '.starlet-setup.json'
@@ -32,8 +50,15 @@ def save_config(config):
   return config_path
 
 
-def get_config_value(config, key, default):
-  """Get a config value with fallback to default."""
+def get_config_value(config: dict, key: str, default: Any) -> Any:
+  """
+  Get a config value with fallback to default.
+
+  Args:
+    config: Configuration dictionary
+    key: Dot-seperated key path (e.g, 'defaults.ssh')
+    default: Default value if key not found
+  """
   parts = key.split('.')
   value = config
   for part in parts:
@@ -44,7 +69,7 @@ def get_config_value(config, key, default):
   return value
 
 
-def create_default_config():
+def create_default_config() -> None:
   """Create a default configuration file."""
   default_config = {
     "defaults": {

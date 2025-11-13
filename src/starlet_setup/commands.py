@@ -1,20 +1,79 @@
+"""Command handlers for single and mono-repo modes."""
+
 import sys
 import shutil
+from argparse import Namespace
 from pathlib import Path
-from .repository import resolve_repo_url, get_default_repos, clone_repository
+from typing import Optional
+
+from .repository import (
+  resolve_repo_url, 
+  get_default_repos, 
+  clone_repository,
+)
 from .config import get_config_value
 from .profiles import list_profiles
 from .utils import run_command
 
 
-def single_repo_mode(args, config):
-  """Handle single repository setup."""
+def _print_mode_header(
+  mode: str,
+  test_repo: Optional[str] = None,
+  repo_name: Optional[str] = None,
+  use_ssh: bool = False,
+  mono_dir: Optional[str] = None,
+  profile: Optional[str] = None,
+  lib_count: Optional[int] = None
+) -> None:
+  """
+  Print standardized mode header.
+
+  Args:
+    mode: Mode name (e.g., "Single Repository Mode")
+    test_repo: Test repository identifier
+    repo_name: Repository name for single mode
+    use_ssh: Whether SSH is being used
+    mono_dir: Mono-repo directory name
+    profile: Profile name if applicable
+    lib_count: Number of libraries
+  """
+  print(f"Starlet Setup: {mode}")
+
+  if profile: 
+    print(f"  Profile: {profile}")
+
+  if test_repo: 
+    print(f"  Test Repository: {test_repo}")
+  elif repo_name: 
+    print(f"  Repository: {repo_name}")
+
+  print(f"  Clone Method: {'SSH' if use_ssh else 'HTTPS'}")
+
+  if mono_dir: 
+    print(f"  Directory: {mono_dir}")
+
+  if lib_count is not None: 
+    print(f"  Libraries: {lib_count}")
+
+  print()
+
+
+def single_repo_mode(args: Namespace) -> None:
+  """
+  Handle single repository setup.
+  
+  Args:
+    args: Parsed command-line arguments
+    config: configuration dictionary
+  """
   repo_url = resolve_repo_url(args.repo, args.ssh)
   repo_name = Path(repo_url).stem.replace('.git', '')
 
-  print("Starlet Setup: Single Repository Mode")
-  print(f"  Repository: {repo_name}")
-  print(f"  Clone Method: {'SSH' if args.ssh else 'HTTPS'}\n")
+  _print_mode_header(
+    mode="Single Repository Mode",
+    repo_name=repo_name,
+    use_ssh=args.ssh
+  )
   
   if Path(repo_name).exists():
     print(f"Repository {repo_name} already exists")
@@ -35,7 +94,7 @@ def single_repo_mode(args, config):
 
   print("Configuring with CMake\n")
   cmake_cmd = ['cmake', '..', f'-DCMAKE_BUILD_TYPE={args.build_type}']
-  cmake_arg = args.cmake_arg if args.cmake_arg is not None else get_config_value(config, 'defaults.cmake_arg', [])
+  cmake_arg = args.cmake_arg if args.cmake_arg is not None else get_config_value(args.config, 'defaults.cmake_arg', [])
   if cmake_arg:
     cmake_cmd.extend(cmake_arg)
   run_command(cmake_cmd, cwd=build_path, verbose=args.verbose)
@@ -99,8 +158,13 @@ set_property(DIRECTORY ${{CMAKE_CURRENT_SOURCE_DIR}} PROPERTY VS_STARTUP_PROJECT
   print(f"Created root CMakeLists.txt at {mono_dir}\n")
 
 
-def mono_repo_mode(args, config):
-  """Handle mono-repo cloning and building."""
+def mono_repo_mode(args: Namespace):
+  """
+  Handle mono-repo cloning and building.
+  
+  Args:
+    args: Parsed command-line arguments
+  """
   test_repo_input = args.repo
 
   if test_repo_input.startswith('http') or test_repo_input.startswith('git@'):
@@ -119,11 +183,11 @@ def mono_repo_mode(args, config):
   test_repo_name = test_repo.split('/')[-1]
 
   if args.profile:
-    profiles = get_config_value(config, 'profiles', {})
+    profiles = get_config_value(args.config, 'profiles', {})
 
     if args.profile not in profiles:
       print(f"Error: Profile '{args.profile}' not found\n")
-      list_profiles(config)
+      list_profiles(args.config)
       sys.exit(1)
 
     profile_repos = profiles[args.profile]
@@ -132,27 +196,35 @@ def mono_repo_mode(args, config):
       print(f"Error: Profile '{args.profile}' has no repositories")
       sys.exit(1)
 
-    print(f"Starlet Setup: Profile Repository Mode")
-    print(f"  Profile: {args.profile}")
-    print(f"  Test Repository: {test_repo}")
-    print(f"  Clone Method: {'SSH' if args.ssh else 'HTTPS'}")
-    print(f"  Directory: {args.mono_dir}")
-    print(f"  Libraries: {len(profile_repos)}\n")
     repos = list(profile_repos) 
+    _print_mode_header(
+      mode="Profile", 
+      profile=args.profile,
+      test_repo=test_repo, 
+      use_ssh=args.ssh,
+      mono_dir=args.mono_dir,
+      lib_count=len(profile_repos)
+    )
 
   elif args.repos:
-    print(f"Starlet Setup: Mono-repository Mode")
-    print(f"  Test Repository: {test_repo}")
-    print(f"  Clone Method: {'SSH' if args.ssh else 'HTTPS'}")
-    print(f"  Directory: {args.mono_dir}\n") 
     repos = list(args.repos)
+    _print_mode_header(
+      mode="Mono-repository", 
+      test_repo=test_repo, 
+      use_ssh=args.ssh,
+      mono_dir=args.mono_dir,
+      lib_count=len(repos)
+    )
 
   else:
-    print(f"Starlet Setup: Mono-repository Mode")
-    print(f"  Test Repository: {test_repo}")
-    print(f"  Clone Method: {'SSH' if args.ssh else 'HTTPS'}")
-    print(f"  Directory: {args.mono_dir}\n") 
-    repos = get_default_repos(config)
+    repos = get_default_repos(args.config)
+    _print_mode_header(
+      mode="Mono-repository", 
+      test_repo=test_repo, 
+      use_ssh=args.ssh,
+      mono_dir=args.mono_dir,
+      lib_count=len(repos)
+    )
 
   if test_repo not in repos:
     repos.append(test_repo)
@@ -180,7 +252,7 @@ def mono_repo_mode(args, config):
   
   print(f"Configuring with CMake in {build_path}\n")
   cmake_cmd = ['cmake', '-DBUILD_LOCAL=ON', '..']
-  cmake_arg = args.cmake_arg if args.cmake_arg is not None else get_config_value(config, 'defaults.cmake_arg', [])
+  cmake_arg = args.cmake_arg if args.cmake_arg is not None else get_config_value(args.config, 'defaults.cmake_arg', [])
   if cmake_arg:
     cmake_cmd.extend(cmake_arg)
   run_command(cmake_cmd, cwd=build_path, verbose=args.verbose)

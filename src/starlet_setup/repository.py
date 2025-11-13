@@ -1,8 +1,10 @@
+"""Repository functions including cloning and URL resolution"""
+
 from pathlib import Path
 from .config import get_config_value
 from .utils import run_command
 
-def resolve_repo_url(repo_input, use_ssh=False):
+def resolve_repo_url(repo_input: str, use_ssh: bool=False) -> str:
   """
   Convert repository input to full URL.
 
@@ -47,7 +49,12 @@ def get_default_repos(config: dict) -> list[str]:
   ]
 
 
-def clone_repository(repo_path: str, target_dir: Path, use_ssh: bool, verbose: bool):
+def clone_repository(
+  repo_path: str, 
+  target_dir: Path, 
+  use_ssh: bool, 
+  verbose: bool
+):
   """
   Clone a single repository.
 

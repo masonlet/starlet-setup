@@ -1,15 +1,20 @@
+"""Profile management for repository configurations."""
+
 import sys
 from pathlib import Path
 from .config import get_config_value, save_config
 
 
-def add_profile(config, args_list):
+def add_profile(config: dict, args_list: list[str]) -> None:
   """
   Add a new profile to the configuration.
 
   Args:
     config: Configuration dictionary
     args_list: [name, repo1, repo2, ...]
+
+  Raises:
+    SystemExit: If insufficient arguments provided  
   """
   if len(args_list) < 2:
     print("Error: --profile-add requires NAME REPO1 [REPO2 ...]")
@@ -39,7 +44,7 @@ def add_profile(config, args_list):
   print(f"\nUsage: {Path(sys.argv[0]).name} username/test-repo --profile {name}")
 
 
-def remove_profile(config, name):
+def remove_profile(config: dict, name: str) -> None:
   """
   Remove a profile from the configuration.
 
@@ -67,8 +72,13 @@ def remove_profile(config, name):
   print(f"Configuration saved to: {config_path}")
 
 
-def list_profiles(config):
-  """List all configured profiles."""
+def list_profiles(config: dict) -> None:
+  """
+  List all configured profiles.
+  
+  Args:
+    config: Configuration dictionary
+  """
   print("Available profiles:")
   profiles = get_config_value(config, 'profiles', {})
 

@@ -1,7 +1,10 @@
+"""Command-line argument parsing."""
+
 import argparse
+from argparse import Namespace
 from .config import get_config_value, load_config
 
-def parse_args():
+def parse_args() -> Namespace:
   """
   Parse command-line arguments for Starlet Setup.
 
@@ -144,6 +147,7 @@ Examples:
   )
 
   args = parser.parse_args()
+  args.config = config
 
   if args.init_config or args.list_profiles or args.profile_add or args.profile_remove:
     return args
