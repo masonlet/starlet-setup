@@ -51,12 +51,12 @@ def single_repo_mode(args, config):
 
 
 
-def _create_batch_cmakelists(batch_dir: Path, test_repo: str, repos: list[str]):
+def _create_mono_repo_cmakelists(mono_dir: Path, test_repo: str, repos: list[str]):
   """
   Create a root CMakeLists.txt for the mono-repo.
 
   Args:
-    batch_dir: Directory containing all cloned repos
+    repo_dir: Directory containing all cloned repos
     test_repo: Test repository name
     repos: List of all repository paths that were cloned
   """
@@ -66,18 +66,18 @@ def _create_batch_cmakelists(batch_dir: Path, test_repo: str, repos: list[str]):
   cmake_content = f"""cmake_minimum_required(VERSION 3.23)
 
 # Config
-project(batch_dev LANGUAGES CXX)
+project(starlet_dev LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 20)
 
 if(NOT EXISTS "${{CMAKE_CURRENT_SOURCE_DIR}}/{test_repo}/CMakeLists.txt")
   message(FATAL_ERROR "Test repository '{test_repo}' not found")
 endif()
 
-set(BATCH_MODULES 
+set(MONO_REPO_MODULES 
   {modules_cmake}
 )
 
-foreach(module IN LISTS BATCH_MODULES)
+foreach(module IN LISTS MONO_REPO_MODULES)
   if(EXISTS "${{CMAKE_CURRENT_SOURCE_DIR}}/${{module}}/CMakeLists.txt")
     add_subdirectory(${{module}})
   else()
@@ -94,13 +94,13 @@ string(REPLACE "-" "_" target "{test_repo}")
 set_property(DIRECTORY ${{CMAKE_CURRENT_SOURCE_DIR}} PROPERTY VS_STARTUP_PROJECT ${{target}})
 """
 
-  cmake_file = batch_dir / "CMakeLists.txt"
+  cmake_file = mono_dir / "CMakeLists.txt"
   cmake_file.write_text(cmake_content)
-  print(f"Created root CMakeLists.txt at {batch_dir}\n")
+  print(f"Created root CMakeLists.txt at {mono_dir}\n")
 
 
-def batch_mode(args, config):
-  """Handle batch cloning and building of multiple repositories."""
+def mono_repo_mode(args, config):
+  """Handle mono-repo cloning and building."""
   test_repo_input = args.repo
 
   if test_repo_input.startswith('http') or test_repo_input.startswith('git@'):
@@ -113,7 +113,7 @@ def batch_mode(args, config):
   elif '/' in test_repo_input:
     test_repo = test_repo_input
   else:
-    print("Error: Repository must be in format 'username/repo' for batch mode")
+    print("Error: Repository must be in format 'username/repo' for mono-repo mode")
     sys.exit(1)
 
   test_repo_name = test_repo.split('/')[-1]
@@ -136,22 +136,22 @@ def batch_mode(args, config):
     print(f"  Profile: {args.profile}")
     print(f"  Test Repository: {test_repo}")
     print(f"  Clone Method: {'SSH' if args.ssh else 'HTTPS'}")
-    print(f"  Directory: {args.batch_dir}")
+    print(f"  Directory: {args.mono_dir}")
     print(f"  Libraries: {len(profile_repos)}\n")
     repos = list(profile_repos) 
 
   elif args.repos:
-    print(f"Starlet Setup: Batch Repository Mode")
+    print(f"Starlet Setup: Mono-repository Mode")
     print(f"  Test Repository: {test_repo}")
     print(f"  Clone Method: {'SSH' if args.ssh else 'HTTPS'}")
-    print(f"  Directory: {args.batch_dir}\n") 
+    print(f"  Directory: {args.mono_dir}\n") 
     repos = list(args.repos)
 
   else:
-    print(f"Starlet Setup: Batch Repository Mode")
+    print(f"Starlet Setup: Mono-repository Mode")
     print(f"  Test Repository: {test_repo}")
     print(f"  Clone Method: {'SSH' if args.ssh else 'HTTPS'}")
-    print(f"  Directory: {args.batch_dir}\n") 
+    print(f"  Directory: {args.mono_dir}\n") 
     repos = get_default_repos(config)
 
   if test_repo not in repos:
@@ -159,23 +159,23 @@ def batch_mode(args, config):
 
   print(f"Total repositories: {len(repos)}\n")
 
-  batch_path = Path(args.batch_dir)
-  print(f"Creating directory: {batch_path}\n")
-  batch_path.mkdir(exist_ok=True)
+  mono_repo_path = Path(args.mono_dir)
+  print(f"Creating directory: {mono_repo_path}\n")
+  mono_repo_path.mkdir(exist_ok=True)
 
   print("Cloning repositories")
   for repo in repos:
     try:
-      clone_repository(repo, batch_path, args.ssh, args.verbose)
+      clone_repository(repo, mono_repo_path, args.ssh, args.verbose)
     except SystemExit:
       sys.exit(1)
   print(f"\n  Finished cloning ({len(repos)} repositories)\n")
   
   print("Creating mono-repo configuration")
-  _create_batch_cmakelists(batch_path, test_repo_name, repos)
+  _create_mono_repo_cmakelists(mono_repo_path, test_repo_name, repos)
 
   print("Creating build directory\n")
-  build_path = batch_path / 'build' 
+  build_path = mono_repo_path / 'build' 
   build_path.mkdir(exist_ok=True)
   
   print(f"Configuring with CMake in {build_path}\n")
@@ -190,5 +190,5 @@ def batch_mode(args, config):
     run_command(['cmake', '--build', '.'], cwd=build_path, verbose=args.verbose)
 
   print("Setup complete")
-  print(f"Repositories in: {batch_path.absolute()}")
+  print(f"Repositories in: {mono_repo_path.absolute()}")
   print(f"Build output in: {build_path.absolute()}")

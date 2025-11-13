@@ -32,7 +32,7 @@ def get_default_repos(config: dict) -> list[str]:
   Returns:
     List of repository paths (username/repo format)
   """
-  default_repos = get_config_value(config, 'batch.default_repos', None)
+  default_repos = get_config_value(config, 'profiles.default', None)
   if default_repos:
     return list(default_repos)
 

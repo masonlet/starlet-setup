@@ -23,9 +23,10 @@ Examples:
     %(prog)s username/repo --no-build
     %(prog)s username/repo --build-dir build_name --build-type Release
 
-  Batch Repository Mode:
-    %(prog)s username/repo --batch --repos user/lib1 user/lib2 user/lib3
-    %(prog)s username/repo --batch --ssh --batch-dir my_workspace
+  Mono-repo Repository Mode:
+    %(prog)s username/repo --mono-repo
+    %(prog)s username/repo --mono-repo --ssh --mono-dir my_workspace
+    %(prog)s username/repo --repos user/lib1 user/lib2 user/lib3
 
   Profile Repository Mode:
     %(prog)s username/repo --profile
@@ -117,22 +118,22 @@ Examples:
     help='Repository name (username/repo) or full GitHub URL'
   )
   
-  # Batch repo mode arguments
+  # Mono-repo repo mode arguments
   parser.add_argument(
-    '--batch',
+    '--mono-repo',
     action='store_true',
-    help='Batch mode: clone multiple repositories along with test repo'
+    help='Mono-repo mode: clone multiple repositories along with test repo'
   )
   parser.add_argument(
-    '--batch-dir',
-    default=get_config_value(config, 'defaults.batch_dir', 'build-batch'),
-    help='Directory name for batch cloning (default: %(default)s)'
+    '--mono-dir',
+    default=get_config_value(config, 'defaults.mono_dir', 'build-mono'),
+    help='Directory name for mono-repo cloning (default: %(default)s)'
   )
   parser.add_argument(
     '--repos',
     nargs='+',
     metavar='REPO',
-    help='List of library repositories to clone in batch mode'
+    help='List of library repositories to clone in mono-repo mode'
   )
   parser.add_argument(
     '--profile',
@@ -150,10 +151,10 @@ Examples:
   if not args.repo:
     parser.error("Repository argument is required")
 
-  if args.batch and args.profile:
-    parser.error("Cannot use both --batch and --profile")
+  if args.profile or args.repos:
+    args.mono_repo = True
 
-  if args.repos and not args.batch:
-    parser.error("--repos requires --batch mode")
+  if args.repos and args.profile:
+    parser.error("Cannot use both --repos and --profile")
 
   return args

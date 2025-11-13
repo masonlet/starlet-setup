@@ -2,14 +2,14 @@
 Starlet Setup - Quick setup for CMake projects.
 
 A utility to quickly clone and build CMake repositories.
-Supports single repository setup and batch setup of mono-repo projects.
+Supports single repository setup and mono-repo setup of projects.
 """
 
 from .cli import parse_args
 from .config import create_default_config, load_config
 from .profiles import list_profiles, add_profile, remove_profile
 from .utils import check_prerequisites
-from .commands import batch_mode, single_repo_mode
+from .commands import mono_repo_mode, single_repo_mode
 
 def main():
   """Main entry point for Starlet Setup."""
@@ -35,8 +35,8 @@ def main():
 
   check_prerequisites(args.verbose) 
 
-  if args.batch or args.profile:
-    batch_mode(args, config)
+  if args.mono_repo or args.profile:
+    mono_repo_mode(args, config)
   else:
     single_repo_mode(args, config)
 

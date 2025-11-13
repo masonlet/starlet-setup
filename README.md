@@ -12,7 +12,7 @@ A lightweight Python utility to quickly clone, configure, and build CMake projec
 - [Configuration](#configuration)
 - [Usage](#usage)
   - [Single Repository Mode](#single-repository-mode)
-  - [Batch / Mono-Repo Mode](#batchmono-repo-mode)
+  - [Mono-Repo Mode](#mono-repo-mode)
   - [Profile Mode](#profile-mode-saved-configurations)
 - [License](#license)
 
@@ -27,7 +27,7 @@ A lightweight Python utility to quickly clone, configure, and build CMake projec
   - Build the project automatically
   - Optional flags for build type, directory, cleaning, and skipping build
 
-- **Batch/Mono-repo Mode**:
+- **Mono-repo Mode**:
   - Clone multiple related repositories into one workspace
   - Automatically generate root CMakeLists.txt for mono-repo structure
   - Build all modules together for easy debugging and development
@@ -35,7 +35,7 @@ A lightweight Python utility to quickly clone, configure, and build CMake projec
   - Perfect for working across multiple interdependent projects
 
 - **Profile Mode**:
-  - Save frequently used batch configuration as named profiles
+  - Save frequently used mono-repo configuration as named profiles
   - Quick access to predefined repository sets
   - Manage multiple development environments effortlessly
   - Default profile includes all core Starlet modules
@@ -96,7 +96,7 @@ python -m starlet_setup username/repo
 <br/>
 
 ## Configuration
-Starlet Setup supports persistent configuration through a JSON file, allowing you to save your preferred defaults (e.g., SSH mode, build directory, batch repositories).
+Starlet Setup supports persistent configuration through a JSON file, allowing you to save your preferred defaults (e.g., SSH mode, build directory, mono-repo repositories).
 
 ### 1. Initialize Config
 ```bash
@@ -115,6 +115,7 @@ Starlet Setup checks for configuration files in this order:
 ## Usage
 
 ### Single Repository Mode
+
 #### Basic Usage
 ```bash
 # Clone and build a repository via HTTPS
@@ -147,30 +148,67 @@ starlet-setup username/repo --verbose
 starlet-setup username/repo --cmake-arg=-DCMAKE_CXX_COMPILER=clang++
 ```
 
-### Batch/Mono-Repo Mode
+<br/>
+
+### Mono-Repo Mode
+
+#### BUILD_LOCAL Usage
+Mono-repo mode sets `BUILD_LOCAL=ON` in the root project's CMakeLists.txt.  
+This flag tells your test repository to link against local modules instead of fetching them via CMake's FetchContent:
+```cmake
+# In your test repo's CMakeLists.txt
+if(NOT BUILD_LOCAL)
+    # Fetch dependencies from GitHub
+    FetchContent_Declare(starlet_engine
+      GIT_REPOSITORY https://github.com/masonlet/starlet-engine.git 
+      GIT_TAG main
+    )
+    # ... other dependencies
+endif()
+```
+
+**With mono-repo mode** (`BUILD_LOCAL=ON`):
+- All modules link locally from subdirectories
+- Changes in any module immediately affect your test repo
+- Full debugging across module boundaries
+- Single unified build for the entire ecosystem
+
+**Without mono-repo mode** (`BUILD_LOCAL` undefined):
+- Dependencies fetched via FetchContent
+- Standalone builds work independently
+- Users can build your repo without the full ecosystem
+- Automatic dependency management
+
+This dual-mode design allows both integrated development and standalone distribution.
+
 #### Basic Usage
+**Note:** When using `--repos` or `--profile`, mono-repo mode is automatically enabled, so the `--mono-repo` flag is optional.
+
 ```bash
 # Clone and build default Starlet modules with a test repository
-starlet-setup username/repo --batch 
+starlet-setup username/repo --mono-repo 
 
 # Use SSH instead of HTTPS
-starlet-setup username/repo --batch --ssh
+starlet-setup username/repo --mono-repo --ssh
 
 # Clone non-default repositories
-starlet-setup username/repo --batch --repos user/lib1 user/lib2
+starlet-setup username/repo --repos user/lib1 user/lib2
 ```
 
 #### Advanced Usage
 ```bash
 # Multiple flags
-starlet-setup username/repo --batch --verbose --batch-dir my-starlet
+starlet-setup username/repo --mono-repo --verbose --mono-dir my-starlet
+
+# Custom repos and multiple flags
+starlet-setup username/repo --repos user/lib1 user/lib2 --ssh --verbose
 
 # Custom CMake args
-starlet-setup username/repo --batch --cmake-arg=-DCMAKE_CXX_COMPILER=clang++
+starlet-setup username/repo --mono-repo --cmake-arg=-DCMAKE_CXX_COMPILER=clang++
 ```
 
 #### Default Repositories (🚀 Starlet Ecosystem)
-When using batch mode without `--repos` or `--profile`, the script clones repositories based on your configuration. The default profile includes:
+When using mono-repo mode without `--repos` or `--profile`, the script clones repositories based on your configuration. The default profile includes:
 - `masonlet/starlet-math`
 - `masonlet/starlet-logger`
 - `masonlet/starlet-controls`
@@ -181,9 +219,9 @@ When using batch mode without `--repos` or `--profile`, the script clones reposi
 - Your specified test repository (e.g., `masonlet/starlet-samples`)
 
 #### Mono-Repo Structure
-Batch mode creates a workspace like this:
+Mono-repo mode creates a workspace like this:
 ```
-build-batch/
+build-mono/
 ├── CMakeLists.txt      # Auto-generated root project
 ├── starlet-math/
 ├── starlet-logger/
@@ -202,8 +240,10 @@ This structure allows you to:
 - Debug across module boundaries
 - Commit changes without digging into build directories
 
+<br/>
+
 ### Profile Mode (Saved Configurations)
-Save frequently used batch configurations as named profiles for easy re-use.
+Save frequently used mono-repo configurations as named profiles for easy re-use.
 
 #### Managing Profiles
 ```bash

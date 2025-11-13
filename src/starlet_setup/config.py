@@ -51,7 +51,7 @@ def create_default_config():
       "ssh": False,
       "build_type": "Debug",
       "build_dir": "build",
-      "batch_dir": "build-batch",
+      "mono_dir": "build_starlet",
       "no_build": False,
       "verbose": False,   
       "cmake_arg": []
