@@ -1,6 +1,8 @@
 # Starlet Setup
 A lightweight Python utility to quickly clone, configure, and build CMake projects — from single repos to full mono-repos.
 
+
+[![PyPI version](https://badge.fury.io/py/starlet-setup.svg)](https://badge.fury.io/py/starlet-setup)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
 [![Python 3.6+](https://img.shields.io/badge/python-3.6%2B-blue.svg)]()
 
@@ -48,16 +50,15 @@ A lightweight Python utility to quickly clone, configure, and build CMake projec
 - CMake
 
 ## Installation
+
+### From PyPI
+```bash
+pip install starlet-setup
+```
+
 ### From GitHub
 ```bash
 pip install git+https://github.com/masonlet/starlet-setup.git
-```
-
-### From source
-```bash
-git clone https://github.com/masonlet/starlet-setup.git
-cd starlet-setup
-pip install -e .
 ```
 
 Once installed, you can use the `starlet-setup` command from anywhere.   
