@@ -61,9 +61,9 @@ Examples:
   )
   parser.add_argument(
     '--cmake-arg',
-    nargs='*',
-    default=None,
-    help='Additional CMake arguments (e.g., --cmake-arg=-D_BUILD_TESTS=ON)'
+    action='append',
+    dest='cmake_arg',
+    help='Additional CMake arguments (e.g., --cmake-arg=-D_BUILD_TESTS=ON). Can be used multiple times.'
   )
 
   # Configuration arguments
