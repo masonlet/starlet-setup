@@ -6,7 +6,7 @@ Supports single repository setup and mono-repo setup of projects.
 """
 
 from .cli import parse_args
-from .config import create_default_config
+from .config import create_default_config, list_configs, add_config, remove_config
 from .profiles import list_profiles, add_profile, remove_profile
 from .utils import check_prerequisites
 from .commands import mono_repo_mode, single_repo_mode
@@ -19,21 +19,35 @@ def main() -> None:
   if args.init_config:
     create_default_config()
     return
-
+  if args.list_configs:
+    list_configs(args.config)
+    return
+  if args.config_add:
+    new_config = {
+      'ssh': args.ssh,
+      'build_type': args.build_type,
+      'build_dir': args.build_dir,
+      'mono_dir': args.mono_dir,
+      'no_build': args.no_build,
+      'verbose': args.verbose,
+      'cmake_arg': args.cmake_arg or []
+    }
+    add_config(args.config, args.config_add, new_config)
+    return
+  if args.config_remove:
+    remove_config(args.config, args.config_remove)
+    return
   if args.list_profiles:
     list_profiles(args.config)
     return
-  
   if args.profile_add:
     add_profile(args.config, args.profile_add)
     return
-  
   if args.profile_remove:
     remove_profile(args.config, args.profile_remove)
     return
-
+  
   check_prerequisites(args.verbose) 
-
   if args.mono_repo or args.profile:
     mono_repo_mode(args)
   else:

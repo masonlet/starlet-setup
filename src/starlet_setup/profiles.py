@@ -75,8 +75,8 @@ def remove_profile(
   
   del config['profiles'][name]
   config_path = save_config(config)
-  print(f"Profile '{name}' removed successfully")
-  print(f"Configuration saved to: {config_path}")
+  print(f"\nProfile '{name}' removed successfully")
+  print(f"Configuration saved to: {config_path}\n")
 
 
 def list_profiles(config: dict[str, Any]) -> None:

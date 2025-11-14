@@ -188,7 +188,7 @@ def add_config(
       print("  Cmake arguments: ")
       for arg in cmake_args:
         print(f"    {arg}")
-  print(f"\nUsage: {Path(sys.argv[0]).name} username/repo --config {name}")
+  print(f"\nUsage: {Path(sys.argv[0]).name} username/repo --config {name}\n")
 
 
 def remove_config(
@@ -203,7 +203,7 @@ def remove_config(
     name: Config name to remove
   """
   if 'configs' not in config or name not in config['configs']:
-    print(f"Warning: Config '{name}' not found.")
+    print(f"\nWarning: Config '{name}' not found.\n")
     return
   
   config_new = config['configs'][name]
@@ -222,8 +222,8 @@ def remove_config(
 
   del config['configs'][name]
   config_path = save_config(config)
-  print(f"Config '{name}' was successfully removed")
-  print(f"Configuration saved to: {config_path}")
+  print(f"\nConfig '{name}' was successfully removed")
+  print(f"Configuration saved to: {config_path}\n")
 
 
 def list_configs(config: dict[str, Any]) -> None:
@@ -246,8 +246,8 @@ def list_configs(config: dict[str, Any]) -> None:
     print(f"  Verbose flag: {cfg.get('verbose')}")
     cmake_args = cfg.get("cmake_args", [])
     if not cmake_args:
-      continue
-    if len(cmake_args) == 1:
+      print()
+    elif len(cmake_args) == 1:
       print(f"  CMake argument: {cmake_args[0]}")
     else:
       print("  CMake arguments:")
