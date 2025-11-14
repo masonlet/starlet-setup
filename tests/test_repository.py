@@ -82,6 +82,7 @@ class TestCloneRepository:
 
   def test_raises_on_clone_failure(self, tmp_path):
     """Should propagate SystemExit when git clone fails."""
-    with patch('starlet_setup.repository.run_command') as mock_run, pytest.raises(SystemExit):
+    with patch('starlet_setup.repository.run_command') as mock_run, \
+         pytest.raises(SystemExit):
       mock_run.side_effect = SystemExit(1)
       clone_repository("user/repo", tmp_path, use_ssh=False, verbose=False)
