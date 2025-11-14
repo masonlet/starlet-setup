@@ -207,7 +207,7 @@ def remove_config(
     return
   
   config_new = config['configs'][name]
-  print(f"Config 'name'")
+  print(f"Config {name}")
   print(f"Configuration details:")
   print(f"  SSH: {config_new.get('ssh')}")
   print(f"  Build Type: {config_new.get('build_type')}")
@@ -231,11 +231,11 @@ def list_configs(config: dict[str, Any]) -> None:
   configs = get_config_value(config, 'configs', {})
 
   if not configs:
-    print("  No configuartions created.")
+    print("  No configurations created.")
     print("  Run with --init-config to create a default configuration.")
     return
   
-  print("Configurartions:")
+  print("Configurations:")
   for name, cfg in configs.items():
     print(f"\n{name}:")
     print(f"  SSH: {cfg.get('ssh')}")
