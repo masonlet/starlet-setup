@@ -6,7 +6,7 @@ from pathlib import Path
 from typing import Any
 
 
-def load_config() -> dict:
+def load_config() -> tuple[dict, Path | None]:
   """
   Load configuration from file, falling back to defaults.
   
@@ -18,19 +18,37 @@ def load_config() -> dict:
     Path.home() / '.starlet-setup.json'
   ]
 
+  invalid_count = 0
   for config_path in config_locations:
     if config_path.exists():
       try:
         with open(config_path) as f:
-          return json.load(f)
+          return json.load(f), config_path
       except json.JSONDecodeError as e:
         print(f"Warning: Invalid JSON in {config_path}: {e}")
+        invalid_count += 1
+        continue
+      except PermissionError:
+        print(f"Error: No permission to read the file in {config_path}.")
+        invalid_count += 1
+        continue
+      except Exception as e:
+        print(f"An unexpected error occurred reading {config_path}: {e}")
+        invalid_count += 1
         continue
 
-  return {}
+
+  if invalid_count != 0:
+    print(f"Found {invalid_count} config file{'s' if invalid_count != 1 else ''} that had errors")
+  else:
+    print("Failed to find config file")
+  return {}, None
 
 
-def save_config(config) -> Path:
+def save_config(
+  config: dict, 
+  config_path: Path | None = None
+) -> Path:
   """
   Save configuration to a file.
 
@@ -40,13 +58,18 @@ def save_config(config) -> Path:
   Returns:
       Path where config was saved
   """
-  config_path = Path('.starlet-setup.json')
-  if not config_path.exists():
-    config_path = Path.home() / '.starlet-setup.json'
-
-  with open(config_path, 'w') as f:
-    json.dump(config, f, indent=2)
-
+  if config_path is None:
+    config_path = Path('.starlet-setup.json')
+  
+  try:
+    with open(config_path, 'w') as f:
+      json.dump(config, f, indent=2)
+  except PermissionError:
+    print(f"Error: No permission to write to {config_path}")
+    raise
+  except Exception as e:
+    print(f"An unexpected error occurred writing {config_path}: {e}")
+    raise
   return config_path
 
 
@@ -56,16 +79,15 @@ def get_config_value(config: dict, key: str, default: Any) -> Any:
 
   Args:
     config: Configuration dictionary
-    key: Dot-seperated key path (e.g, 'defaults.ssh')
+    key: Dot-separated key path (e.g, 'defaults.ssh')
     default: Default value if key not found
   """
   parts = key.split('.')
   value = config
   for part in parts:
-    if isinstance(value, dict) and part in value:
-      value = value[part]
-    else:
+    if not isinstance(value, dict) or part not in value:
       return default
+    value = value[part]
   return value
 
 
@@ -101,8 +123,15 @@ def create_default_config() -> None:
       print("Aborted.")
       return
 
-  with open(config_path, 'w') as f:
-    json.dump(default_config, f, indent=2)
+  try:
+    with open(config_path, 'w') as f:
+      json.dump(default_config, f, indent=2)
+  except PermissionError:
+    print(f"Error: No permission to write to {config_path}")
+    return
+  except Exception as e:
+    print(f"An unexpected error occurred writing {config_path}: {e}")
+    return
 
   print(f"Created config file: {config_path.absolute()}")
   print("Edit this file to customize your defaults.")
