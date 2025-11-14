@@ -13,8 +13,9 @@ A lightweight Python utility to quickly clone, configure, and build CMake projec
 - [Configuration](#configuration)
 - [Usage](#usage)
   - [Single Repository Mode](#single-repository-mode)
-  - [Mono-Repo Mode](#mono-repo-mode)
-  - [Profile Mode](#profile-mode-saved-configurations)
+  - [Mono-Repo Mode](#mono-repository-mode)
+  - [Profile Mode](#profile-mode)
+  - [Config Mode](#config-mode)
 - [Development](#development)
 - [License](#license)
 
@@ -75,9 +76,9 @@ pip install git+https://github.com/masonlet/starlet-setup.git
 
 Once installed, you can use the `starlet-setup` command from anywhere.   
 
+### ⚠️ Command not found? ⚠️
 <details>
-<summary><h4>⚠️ Command not found? ⚠️</h4></summary>
-If you get an error saying the command is not found, you may need to add Python's user scripts directory to your PATH:
+<summary>If you get an error saying the command is not found, you may need to add Python's user scripts directory to your PATH.</summary>  
 
 **Find your scripts directory**:
 ```bash
@@ -136,9 +137,10 @@ Starlet Setup checks for configuration files in this order:
 
 ## Usage
 
+### <a id="single-repository-mode"></a>
 <details>
-<summary><h3>Single Repository Mode</h3></summary>
-  
+<summary>Single Repository Mode</summary>
+
 #### Basic Usage
   
 ```bash
@@ -171,11 +173,14 @@ starlet-setup username/repo --verbose
 # Custom CMake args
 starlet-setup username/repo --cmake-arg=-DCMAKE_CXX_COMPILER=clang++
 ```
+
+<br/>
+
 </details>
 
-
+### <a id="mono-repository-mode"></a>
 <details>
-<summary><h3>Mono-Repo Mode</h3></summary>
+<summary>Mono-Repo Mode</summary>
 
 #### BUILD_LOCAL Usage
 Mono-repo mode sets `BUILD_LOCAL=ON` in the root project's CMakeLists.txt.  
@@ -264,10 +269,14 @@ This structure allows you to:
 - Build everything together
 - Debug across module boundaries
 - Commit changes without digging into build directories
+
+<br/>
+
 </details>
 
+### <a id="profile-mode"></a>
 <details>
-<summary><h3>Profile Mode (Saved Configurations)</h3></summary>
+<summary>Profile Mode (Saved Configurations)</summary>
 
 #### Managing Profiles
 ```bash
@@ -292,13 +301,51 @@ starlet-setup username/repo --profile myprofile
 # Use a profile with SSH
 starlet-setup username/repo --profile myprofile --ssh
 ```
+
+<br/>
+
 </details>
+
+### <a id="config-mode"></a>
+<details>
+<summary>Config Mode (Saved Build Settings)</summary>
+
+#### Managing Configs
+```bash
+# List all saved configurations
+starlet-setup --list-configs
+
+# Add a new configuration with flags
+starlet-setup --config-add myconfig --ssh --build-type Release --no-build
+
+# Remove a configuration
+starlet-setup --config-remove myconfig
+```
+
+#### Using Configs
+```bash
+# Use a saved config
+starlet-setup username/repo --config myconfig
+
+# Override specific settings
+starlet-setup username/repo --config myconfig --verbose
+
+# Config with mono-repo mode
+starlet-setup username/repo --mono-repo --config myconfig --ssh
+```
+
+<br/>
+
+</details>
+
 
 <br/>
 
 ## Development
+
+### <a id="development"></a>
 <details>
-<summary><h3>Developing starlet-setup</h3></summary>
+<summary>Development</summary>
 
 ### Running Tests
 

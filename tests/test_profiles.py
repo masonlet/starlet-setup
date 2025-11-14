@@ -15,7 +15,7 @@ class TestAddProfile:
     """Should add new profile to config."""
     config = {'profiles': {}}
 
-    with patch('starlet_setup.profiles.save_config', return_value=Path('config.json')):
+    with patch('starlet_setup.config.save_config', return_value=Path('config.json')):
       add_profile(config, ['myprofile', 'user/repo1', 'user/repo2'])
 
     assert 'myprofile' in config['profiles']
@@ -27,7 +27,7 @@ class TestAddProfile:
     """Should create profiles dict if not present."""
     config = {}
 
-    with patch('starlet_setup.profiles.save_config', return_value=Path('config.json')):
+    with patch('starlet_setup.config.save_config', return_value=Path('config.json')):
       add_profile(config, ['myprofile', 'user/repo1'])
 
     assert 'profiles' in config
@@ -38,7 +38,7 @@ class TestAddProfile:
     """Should overwrite existing profile when user confirms."""
     config = {'profiles': {'myprofile': ['old/repo']}}
 
-    with patch('starlet_setup.profiles.save_config', return_value=Path('config.json')), \
+    with patch('starlet_setup.config.save_config', return_value=Path('config.json')), \
          patch('builtins.input', return_value='y'):
       add_profile(config, ['myprofile', 'new/repo1', 'new/repo2'])
       
@@ -49,7 +49,7 @@ class TestAddProfile:
     """Should not overwrite when user declines."""
     config = {'profiles': {'myprofile': ['old/repo']}}
 
-    with patch('starlet_setup.profiles.save_config'), \
+    with patch('starlet_setup.config.save_config'), \
          patch('builtins.input', return_value='n'):
       add_profile(config, ['myprofile', 'new/repo1'])
       
@@ -62,7 +62,7 @@ class TestAddProfile:
     config = {}
         
     with pytest.raises(SystemExit):
-        add_profile(config, ['myprofile'])
+      add_profile(config, ['myprofile'])
 
 
 class TestRemoveProfile:
@@ -70,7 +70,7 @@ class TestRemoveProfile:
     """Should remove profile when confirmed."""
     config = {'profiles': {'myprofile': ['user/repo1', 'user/repo2']}}
     
-    with patch('starlet_setup.profiles.save_config', return_value=Path('config.json')), \
+    with patch('starlet_setup.config.save_config', return_value=Path('config.json')), \
          patch('builtins.input', return_value='y'):
       remove_profile(config, 'myprofile')
 
