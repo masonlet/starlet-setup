@@ -22,7 +22,11 @@ A lightweight Python utility to quickly clone, configure, and build CMake projec
 
 <br/>
 
-
+## Quick start
+```bash
+pip install starlet-setup
+starlet-setup username/repo
+```
 
 ## Features
 - **Single Repository Mode**:
@@ -71,7 +75,8 @@ pip install git+https://github.com/masonlet/starlet-setup.git
 
 Once installed, you can use the `starlet-setup` command from anywhere.   
 
-### ⚠️ Command not found? ⚠️
+<details>
+<summary><h4>⚠️ Command not found? ⚠️</h4></summary>
 If you get an error saying the command is not found, you may need to add Python's user scripts directory to your PATH:
 
 **Find your scripts directory**:
@@ -101,7 +106,7 @@ Alternatively, you can run the script directly:
 ```bash
 python -m starlet_setup username/repo
 ```
-
+</details>
 
 
 <br/>
@@ -131,9 +136,11 @@ Starlet Setup checks for configuration files in this order:
 
 ## Usage
 
-### Single Repository Mode
-
+<details>
+<summary><h3>Single Repository Mode</h3></summary>
+  
 #### Basic Usage
+  
 ```bash
 # Clone and build a repository via HTTPS
 starlet-setup username/repo
@@ -164,10 +171,11 @@ starlet-setup username/repo --verbose
 # Custom CMake args
 starlet-setup username/repo --cmake-arg=-DCMAKE_CXX_COMPILER=clang++
 ```
+</details>
 
-<br/>
 
-### Mono-Repo Mode
+<details>
+<summary><h3>Mono-Repo Mode</h3></summary>
 
 #### BUILD_LOCAL Usage
 Mono-repo mode sets `BUILD_LOCAL=ON` in the root project's CMakeLists.txt.  
@@ -256,11 +264,10 @@ This structure allows you to:
 - Build everything together
 - Debug across module boundaries
 - Commit changes without digging into build directories
+</details>
 
-<br/>
-
-### Profile Mode (Saved Configurations)
-Save frequently used mono-repo configurations as named profiles for easy re-use.
+<details>
+<summary><h3>Profile Mode (Saved Configurations)</h3></summary>
 
 #### Managing Profiles
 ```bash
@@ -285,18 +292,17 @@ starlet-setup username/repo --profile myprofile
 # Use a profile with SSH
 starlet-setup username/repo --profile myprofile --ssh
 ```
-
-
+</details>
 
 <br/>
 
-
-
 ## Development
+<details>
+<summary><h3>Developing starlet-setup</h3></summary>
 
 ### Running Tests
 
-#### 1. Clone the Repository
+#### 1. Clone starlet-setup
 ```bash
 git clone https://github.com/masonlet/starlet-setup.git
 cd starlet-setup
@@ -318,7 +324,7 @@ pytest tests/test_config.py
 # Run tests with flags
 pytest -v
 ```
-
+</details>
 
 
 <br/>
