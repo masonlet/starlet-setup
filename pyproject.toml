@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "starlet-setup"
-version = "1.0.2"
+version = "1.1.0"
 description = "Quick setup for CMake projects"
 readme = "README.md"
 requires-python = ">=3.6"
