@@ -1,6 +1,5 @@
 """Utility functions for Starlet Setup."""
 
-
 import sys
 import shutil
 import subprocess

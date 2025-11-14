@@ -5,7 +5,6 @@ A utility to quickly clone and build CMake repositories.
 Supports single repository setup and mono-repo setup of projects.
 """
 
-
 from .cli import parse_args
 from .config import create_default_config
 from .profiles import list_profiles, add_profile, remove_profile

@@ -1,6 +1,5 @@
 """Profile management for repository configurations."""
 
-
 import sys
 from pathlib import Path
 from .config import get_config_value, save_config

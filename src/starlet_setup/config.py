@@ -1,6 +1,5 @@
 """Configuration file management"""
 
-
 import json
 from pathlib import Path
 from typing import Any

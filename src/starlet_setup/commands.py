@@ -1,6 +1,5 @@
 """Command handlers for single and mono-repo modes."""
 
-
 import sys
 import shutil
 from argparse import Namespace

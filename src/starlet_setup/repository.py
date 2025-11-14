@@ -1,6 +1,5 @@
 """Repository functions including cloning and URL resolution"""
 
-
 from pathlib import Path
 from .config import get_config_value
 from .utils import run_command

@@ -1,6 +1,5 @@
 """Command-line argument parsing."""
 
-
 import argparse
 from argparse import Namespace
 from .config import get_config_value, load_config

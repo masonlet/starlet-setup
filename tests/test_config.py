@@ -1,8 +1,9 @@
 """Tests for config module."""
 
 import json
-import pytest
 from pathlib import Path
+
+import pytest
 from unittest.mock import patch
 from starlet_setup.config import (
   load_config,
