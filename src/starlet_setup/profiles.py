@@ -2,10 +2,14 @@
 
 import sys
 from pathlib import Path
+from typing import Any
 from .config import get_config_value, save_config
 
 
-def add_profile(config: dict, args_list: list[str]) -> None:
+def add_profile(
+  config: dict[str, Any], 
+  args_list: list[str]
+) -> None:
   """
   Add a new profile to the configuration.
 
@@ -44,7 +48,10 @@ def add_profile(config: dict, args_list: list[str]) -> None:
   print(f"\nUsage: {Path(sys.argv[0]).name} username/test-repo --profile {name}")
 
 
-def remove_profile(config: dict, name: str) -> None:
+def remove_profile(
+  config: dict[str, Any], 
+  name: str
+) -> None:
   """
   Remove a profile from the configuration.
 
@@ -72,7 +79,7 @@ def remove_profile(config: dict, name: str) -> None:
   print(f"Configuration saved to: {config_path}")
 
 
-def list_profiles(config: dict) -> None:
+def list_profiles(config: dict[str, Any]) -> None:
   """
   List all configured profiles.
   

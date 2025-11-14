@@ -8,7 +8,10 @@ from starlet_setup.config import (
   load_config,
   save_config,
   get_config_value,
-  create_default_config
+  create_default_config,
+  add_config,
+  remove_config,
+  list_configs
 )
 
 
@@ -16,7 +19,9 @@ from starlet_setup.config import (
 def valid_config():
   """Sample valid config."""
   return {
-    "defaults": {"ssh": True, "verbose": False},
+    "configs": {
+      "default": {"ssh": True, "verbose": False}
+    },
     "profiles": {"default": ["repo1", "repo2"]}
   }
 
@@ -50,7 +55,7 @@ class TestLoadConfig:
     with open(config_path, 'w') as f:
       f.write("{invalid json")
 
-    config, path = load_config()
+    config, _ = load_config()
     assert config == {}
     captured = capsys.readouterr()
     assert "Invalid JSON" in captured.out
@@ -80,14 +85,14 @@ class TestSaveConfig:
 class TestGetConfigValue:
   def test_retrieves_nested_value(self, valid_config):
     """Should navigate dot-separated keys."""
-    assert get_config_value(valid_config, "defaults.ssh", False) is True
-    assert get_config_value(valid_config, "defaults.verbose", True) is False
+    assert get_config_value(valid_config, "configs.default.ssh", False) is True
+    assert get_config_value(valid_config, "configs.default.verbose", True) is False
 
 
   def test_returns_default_when_key_missing(self, valid_config):
     """Should return default for non-existent keys."""
     assert get_config_value(valid_config, "fake.key", "default") == "default"
-    assert get_config_value(valid_config, "defaults.numbermissing", 42) == 42
+    assert get_config_value(valid_config, "configs.default.numbermissing", 42) == 42
 
 
   def test_handles_non_dict_intermediate_values(self):
@@ -107,8 +112,8 @@ class TestCreateDefaultConfig:
     assert config_path.exists()
     with open(config_path) as f:
       config = json.load(f)
-    assert "defaults" in config
-    assert "profiles" in config
+    assert 'configs' in config
+    assert 'profiles' in config
 
 
   def test_prompts_before_overwriting(self, tmp_path, monkeypatch, capsys):
@@ -122,3 +127,101 @@ class TestCreateDefaultConfig:
 
     assert "Aborted" in capsys.readouterr().out
     assert config_path.read_text() == "{}"
+
+
+class TestAddConfig:
+  def test_adds_new_config(self, capsys):
+    """Should add new config to config."""
+    config = {'configs': {}}
+
+    with patch('starlet_setup.config.save_config', return_value=Path('config.json')):
+      add_config(config, 'myconfig', {'ssh': False, 'verbose': True})
+
+    assert 'myconfig' in config['configs']
+    assert config['configs']['myconfig']['ssh'] is False
+    assert config['configs']['myconfig']['verbose'] is True
+    assert "added successfully" in capsys.readouterr().out
+
+  
+  def test_creates_configs_key_if_missing(self):
+    """Should create configs dict if not present."""
+    config = {}
+
+    with patch('starlet_setup.config.save_config', return_value=Path('config.json')):
+      add_config(config, 'myconfig', {})
+
+    assert 'configs' in config
+    assert 'myconfig' in config['configs']
+
+
+  def test_overwrites_config_when_confirmed(self):
+    """Should overwrite existing config when user confirms."""
+    config = {'configs': {'myconfig': {'ssh': False}}}
+
+    with patch('starlet_setup.config.save_config', return_value=Path('config.json')), \
+         patch('builtins.input', return_value='y'):
+      add_config(config, 'myconfig', {'ssh': True})
+
+    assert config['configs']['myconfig'].get('ssh') == True
+
+
+  def test_aborts_overwrite_when_not_confirmed(self, capsys):
+    """Should not overwrite when user declines."""
+    config = {'configs': {'myconfig': {'ssh': False}}}
+
+    with patch('starlet_setup.config.save_config'), \
+         patch('builtins.input', return_value='n'):
+      add_config(config, 'myconfig', {'ssh': True})
+
+    assert config['configs']['myconfig'].get('ssh') is False
+    assert "Aborted" in capsys.readouterr().out
+
+
+class TestRemoveConfig:
+  def test_removes_existing_config(self):
+    """Should remove config when confirmed."""
+    config = {'configs': {'myconfig': {}}}
+
+    with patch('starlet_setup.config.save_config', return_value=Path('config.json')), \
+         patch('builtins.input', return_value='y'):
+      remove_config(config, 'myconfig')
+
+    assert 'myconfig' not in config['configs']
+
+
+  def test_aborts_removal_when_not_confirmed(self, capsys):
+    """Should not remove config when declined."""
+    config = {'configs': {'myconfig': {}}}
+
+    with patch('builtins.input', return_value='n'):
+      remove_config(config, 'myconfig')
+
+    assert 'myconfig' in config['configs']
+    assert "Aborted" in capsys.readouterr().out
+
+
+  def test_handles_nonexistent_config(self, capsys):
+    """Should warn when config doesn't exist."""
+    config = {'configs': {}}
+
+    remove_config(config, 'nonexistent')
+    assert "not found" in capsys.readouterr().out
+
+
+class TestListConfigs:
+  def test_list_all_configs(self, capsys):
+    """Should display all configurations."""
+    config = {
+      'configs': {
+        'config1': {'ssh': True},
+        'config2': {'verbose': True}
+      }
+    }
+
+    list_configs(config)
+
+    output = capsys.readouterr().out
+    assert 'config1' in output
+    assert 'config2' in output
+    assert 'SSH: True' in output
+    assert 'Verbose flag: True' in output
