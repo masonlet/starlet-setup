@@ -51,7 +51,11 @@ starlet-setup username/repo
   - Manage multiple development environments effortlessly
   - Default profile includes all core Starlet modules
 
-
+- **Configurations**:
+  - Save build settings as named configurations
+  - Store SSH preferences, build types, and CMake arguments
+  - Reuse common setups without repeating flags
+  - Works with both single-repo and mono-repo modes
 
 <br/>
 
