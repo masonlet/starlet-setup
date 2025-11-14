@@ -1,11 +1,10 @@
 # Starlet Setup
 A lightweight Python utility to quickly clone, configure, and build CMake projects — from single repos to full mono-repos.
 
-
+[![Tests](https://github.com/masonlet/starlet-setup/actions/workflows/tests.yml/badge.svg)](https://github.com/masonlet/starlet-setup/actions/workflows/tests.yml)
 [![PyPI version](https://badge.fury.io/py/starlet-setup.svg)](https://badge.fury.io/py/starlet-setup)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
 [![Python 3.6+](https://img.shields.io/badge/python-3.6%2B-blue.svg)]()
-
 
 ## Table of Contents
 - [Features](#features)
@@ -16,9 +15,14 @@ A lightweight Python utility to quickly clone, configure, and build CMake projec
   - [Single Repository Mode](#single-repository-mode)
   - [Mono-Repo Mode](#mono-repo-mode)
   - [Profile Mode](#profile-mode-saved-configurations)
+- [Development](#development)
 - [License](#license)
 
+
+
 <br/>
+
+
 
 ## Features
 - **Single Repository Mode**:
@@ -42,7 +46,11 @@ A lightweight Python utility to quickly clone, configure, and build CMake projec
   - Manage multiple development environments effortlessly
   - Default profile includes all core Starlet modules
 
+
+
 <br/>
+
+
 
 ## Prerequisites
 - Python 3.6+
@@ -94,7 +102,11 @@ Alternatively, you can run the script directly:
 python -m starlet_setup username/repo
 ```
 
+
+
 <br/>
+
+
 
 ## Configuration
 Starlet Setup supports persistent configuration through a JSON file, allowing you to save your preferred defaults (e.g., SSH mode, build directory, mono-repo repositories).
@@ -111,7 +123,11 @@ Starlet Setup checks for configuration files in this order:
 - `./.starlet-setup.json` (current directory)
 - `~/.starlet-setup.json` (home directory)
 
+
+
 <br/>
+
+
 
 ## Usage
 
@@ -270,7 +286,44 @@ starlet-setup username/repo --profile myprofile
 starlet-setup username/repo --profile myprofile --ssh
 ```
 
+
+
 <br/>
+
+
+
+## Development
+
+### Running Tests
+
+#### 1. Clone the Repository
+```bash
+git clone https://github.com/masonlet/starlet-setup.git
+cd starlet-setup
+```
+
+#### 2. Install in Development Mode
+```bash
+pip install -e .
+```
+
+#### 3. Run Tests
+```bash
+# Run all tests
+pytest
+
+# Run specific test file
+pytest tests/test_config.py
+
+# Run tests with flags
+pytest -v
+```
+
+
+
+<br/>
+
+
 
 ## License
 MIT License — see [LICENSE](./LICENSE) for details.

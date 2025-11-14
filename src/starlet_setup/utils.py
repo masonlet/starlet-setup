@@ -33,8 +33,8 @@ def check_prerequisites(verbose: bool=False) -> None:
 
 def run_command(
   cmd: list[str], 
-  cwd: Optional[Union[str, Path]]=None, 
-  verbose: bool=False
+  cwd: Optional[Union[str, Path]] = None, 
+  verbose: bool = False
 ) -> subprocess.CompletedProcess:
   """
   Run a shell command with proper error handling

@@ -11,6 +11,7 @@ from .profiles import list_profiles, add_profile, remove_profile
 from .utils import check_prerequisites
 from .commands import mono_repo_mode, single_repo_mode
 
+
 def main() -> None:
   """Main entry point for Starlet Setup."""
   args = parse_args()

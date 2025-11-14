@@ -4,6 +4,7 @@ import argparse
 from argparse import Namespace
 from .config import get_config_value, load_config
 
+
 def parse_args() -> Namespace:
   """
   Parse command-line arguments for Starlet Setup.
@@ -11,7 +12,7 @@ def parse_args() -> Namespace:
   Returns:
     Parsed arguments namespace
   """
-  config = load_config()
+  config, config_path = load_config()
 
   parser = argparse.ArgumentParser(
     description="Starlet Setup - Quick setup script for CMake projects",
@@ -60,9 +61,9 @@ Examples:
   )
   parser.add_argument(
     '--cmake-arg',
-    nargs='*',
-    default=None,
-    help='Additional CMake arguments (e.g., --cmake-arg=-D_BUILD_TESTS=ON)'
+    action='append',
+    dest='cmake_arg',
+    help='Additional CMake arguments (e.g., --cmake-arg=-D_BUILD_TESTS=ON). Can be used multiple times.'
   )
 
   # Configuration arguments
@@ -148,6 +149,7 @@ Examples:
 
   args = parser.parse_args()
   args.config = config
+  args.config_path = config_path
 
   if args.init_config or args.list_profiles or args.profile_add or args.profile_remove:
     return args

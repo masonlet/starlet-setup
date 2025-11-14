@@ -4,6 +4,7 @@ from pathlib import Path
 from .config import get_config_value
 from .utils import run_command
 
+
 def resolve_repo_url(repo_input: str, use_ssh: bool=False) -> str:
   """
   Convert repository input to full URL.

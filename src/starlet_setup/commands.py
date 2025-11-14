@@ -5,7 +5,6 @@ import shutil
 from argparse import Namespace
 from pathlib import Path
 from typing import Optional
-
 from .repository import (
   resolve_repo_url, 
   get_default_repos, 
@@ -107,7 +106,6 @@ def single_repo_mode(args: Namespace) -> None:
     run_command(build_cmd, cwd=build_path, verbose=args.verbose)
 
   print(f"Project finished in {repo_name}/{args.build_dir}")
-
 
 
 def _create_mono_repo_cmakelists(mono_dir: Path, test_repo: str, repos: list[str]):
