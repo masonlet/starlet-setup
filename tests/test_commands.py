@@ -1,15 +1,14 @@
 """Tests for commands module."""
 
-from pathlib import Path
 from argparse import Namespace
-
 import pytest
-from unittest.mock import patch, Mock, call
+from unittest.mock import patch
 from starlet_setup.commands import (
     single_repo_mode,
     mono_repo_mode,
     _create_mono_repo_cmakelists
 )
+
 
 class TestSingleRepoMode:
   def test_clones_and_builds_new_repo(self, tmp_path, monkeypatch):
@@ -30,7 +29,7 @@ class TestSingleRepoMode:
     def create_repo_on_clone(*args, **kwargs):
       if 'clone' in str(args):
         (tmp_path / 'repo').mkdir()
-
+        
     with patch('starlet_setup.commands.run_command', side_effect=create_repo_on_clone) as mock_run:
       single_repo_mode(args)
       assert mock_run.call_count >= 2

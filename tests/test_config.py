@@ -2,7 +2,6 @@
 
 import json
 from pathlib import Path
-
 import pytest
 from unittest.mock import patch
 from starlet_setup.config import (
@@ -33,6 +32,7 @@ class TestLoadConfig:
     config, path = load_config()
     assert config == valid_config
     assert path.resolve() == config_path.resolve()
+
 
   def test_returns_empty_dict_when_no_config_exists(self, tmp_path, monkeypatch, capsys):
     """Should return empty dict when no config found."""
@@ -67,6 +67,7 @@ class TestSaveConfig:
       saved_config = json.load(f)
     assert saved_config == valid_config
 
+
   def test_uses_default_path_when_none_provided(self, tmp_path, valid_config, monkeypatch):
     """Should use default to .starlet-setup.json in current directory."""
     monkeypatch.chdir(tmp_path)
@@ -82,10 +83,12 @@ class TestGetConfigValue:
     assert get_config_value(valid_config, "defaults.ssh", False) is True
     assert get_config_value(valid_config, "defaults.verbose", True) is False
 
+
   def test_returns_default_when_key_missing(self, valid_config):
     """Should return default for non-existent keys."""
     assert get_config_value(valid_config, "fake.key", "default") == "default"
     assert get_config_value(valid_config, "defaults.numbermissing", 42) == 42
+
 
   def test_handles_non_dict_intermediate_values(self):
     """Should return default when path encounters non-dict."""
@@ -106,6 +109,7 @@ class TestCreateDefaultConfig:
       config = json.load(f)
     assert "defaults" in config
     assert "profiles" in config
+
 
   def test_prompts_before_overwriting(self, tmp_path, monkeypatch, capsys):
     """Should ask permission before overwriting existing config."""

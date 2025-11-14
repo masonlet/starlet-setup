@@ -1,7 +1,6 @@
 """Tests for utils module."""
 
 import subprocess
-
 import pytest
 from unittest.mock import patch, Mock
 from starlet_setup.utils import (
@@ -16,6 +15,7 @@ class TestCheckPrerequisites:
     with patch('shutil.which', return_value='/usr/bin/git'):
       check_prerequisites()
 
+
   def test_exits_when_tools_missing(self, capsys):
     """Should exit with error message when tools missing."""
     with patch('shutil.which', return_value=None), pytest.raises(SystemExit) as exc_info:
@@ -23,6 +23,7 @@ class TestCheckPrerequisites:
 
     assert exc_info.value.code == 1
     assert "Missing required tools: git, cmake" in capsys.readouterr().out
+
 
   def test_shows_found_tools_in_verbose_mode(self, capsys):
     """Should print found tools when verbose enabled."""
@@ -33,6 +34,7 @@ class TestCheckPrerequisites:
     assert "Found git" in output
     assert "Found cmake" in output
 
+
 class TestRunCommand:
   def test_executes_command_successfully(self):
     """Should run command and return CompletedProcess."""
@@ -41,6 +43,7 @@ class TestRunCommand:
       result = run_command(['echo', 'test'])
       mock_run.assert_called_once()
       assert result.returncode == 0
+
 
   def test_exits_on_command_failure(self, capsys):
     """Should exit when command returns non-zero."""
@@ -53,6 +56,7 @@ class TestRunCommand:
     assert exc_info.value.code == 1
     assert "Error running command" in capsys.readouterr().out
 
+
   def test_exits_on_command_not_found(self, capsys):
     """Should exit when command does not exist."""
     with patch('subprocess.run') as mock_run, pytest.raises(SystemExit) as exc_info:
@@ -62,6 +66,7 @@ class TestRunCommand:
     assert exc_info.value.code == 1
     assert "Command not found: nonexistent" in capsys.readouterr().out
 
+
   def test_uses_working_directory(self, tmp_path):
     """Should execute command in specific directory."""
     with patch('subprocess.run') as mock_run:
@@ -69,6 +74,7 @@ class TestRunCommand:
       run_command(['ls'], cwd=tmp_path)
 
       assert mock_run.call_args[1]['cwd'] == tmp_path
+
 
   def test_prints_details_in_verbose_mode(self, capsys):
     """Should show command and directory in verbose mode."""
