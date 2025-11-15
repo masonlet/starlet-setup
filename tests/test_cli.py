@@ -17,8 +17,10 @@ class TestParseArgs:
 
   def test_applies_config_defaults(self):
     """Should use config values as default."""
-    config = {
-      "defaults": {"ssh": True, "verbose": True, "build_type": "Release"}
+    config = { 
+      "configs": {
+        "default": {"ssh": True, "verbose": True, "build_type": "Release"}
+      }
     }
     with patch('starlet_setup.cli.load_config', return_value=(config,None)), \
          patch('sys.argv', ['prog', 'user/repo']):
@@ -30,7 +32,7 @@ class TestParseArgs:
 
   def test_command_line_overrides_config(self):
     """Should allow CLI args to override config defaults."""
-    config = {"defaults": {"ssh": False}}
+    config = {"default": {"ssh": False}}
     with patch('starlet_setup.cli.load_config', return_value=(config, None)), \
          patch('sys.argv', ['prog', 'user/repo', '--ssh']):
       args = parse_args()
@@ -98,7 +100,7 @@ class TestParseArgs:
 
   def test_attaches_config_to_args(self):
     """Should attach loaded config to args namespace."""
-    config = {"defaults": {}}
+    config = {"default": {}}
     with patch('starlet_setup.cli.load_config', return_value=(config, None)), \
          patch('sys.argv', ['prog', 'user/repo']):
       args = parse_args()

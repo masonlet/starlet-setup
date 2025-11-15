@@ -13,13 +13,13 @@ def _add_common_args(
   parser.add_argument(
     '--ssh',
     action='store_true',
-    default=get_config_value(config, 'defaults.ssh', False),
+    default=get_config_value(config, 'configs.default.ssh', False),
     help='Use SSH instead of HTTPS for cloning'
   )
   parser.add_argument(
     '-v', '--verbose',
     action='store_true',
-    default=get_config_value(config, 'defaults.verbose', False),
+    default=get_config_value(config, 'configs.default.verbose', False),
     help='Show detailed command output'
   )
   parser.add_argument(
@@ -76,18 +76,18 @@ def _add_build_args(parser, config: dict[str, Any]) -> None:
   parser.add_argument(
     '-b', '--build-type',
     choices=['Debug', 'Release', 'RelWithDebInfo', 'MinSizeRel'],
-    default=get_config_value(config, 'defaults.build_type', 'Debug'),
+    default=get_config_value(config, 'configs.default.build_type', 'Debug'),
     help='CMake build type (default: %(default)s)'
   )
   parser.add_argument(
     '-d', '--build-dir',
-    default=get_config_value(config, 'defaults.build_dir', 'build'),
+    default=get_config_value(config, 'configs.default.build_dir', 'build'),
     help='Build directory name (default: %(default)s)'
   )
   parser.add_argument(
     '-n', '--no-build',
     action='store_true',
-    default=get_config_value(config, 'defaults.no_build', False),
+    default=get_config_value(config, 'configs.default.no_build', False),
     help='Skip building, only configure'
   )
   parser.add_argument(
@@ -105,7 +105,7 @@ def _add_mono_repo_args(parser, config: dict[str, Any]) -> None:
   )
   parser.add_argument(
     '--mono-dir',
-    default=get_config_value(config, 'defaults.mono_dir', 'build-mono'),
+    default=get_config_value(config, 'configs.default.mono_dir', 'build-mono'),
     help='Directory name for mono-repo cloning (default: %(default)s)'
   )
   parser.add_argument(
