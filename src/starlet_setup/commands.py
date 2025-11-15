@@ -93,7 +93,7 @@ def single_repo_mode(args: Namespace) -> None:
 
   print("Configuring with CMake\n")
   cmake_cmd = ['cmake', '..', f'-DCMAKE_BUILD_TYPE={args.build_type}']
-  cmake_arg = args.cmake_arg if args.cmake_arg is not None else get_config_value(args.config, 'defaults.cmake_arg', [])
+  cmake_arg = args.cmake_arg if args.cmake_arg is not None else get_config_value(args.config, 'configs.default.cmake_arg', [])
   if cmake_arg:
     cmake_cmd.extend(cmake_arg)
   run_command(cmake_cmd, cwd=build_path, verbose=args.verbose)
@@ -250,7 +250,7 @@ def mono_repo_mode(args: Namespace):
   
   print(f"Configuring with CMake in {build_path}\n")
   cmake_cmd = ['cmake', '-DBUILD_LOCAL=ON', '..']
-  cmake_arg = args.cmake_arg if args.cmake_arg is not None else get_config_value(args.config, 'defaults.cmake_arg', [])
+  cmake_arg = args.cmake_arg if args.cmake_arg is not None else get_config_value(args.config, 'configs.default.cmake_arg', [])
   if cmake_arg:
     cmake_cmd.extend(cmake_arg)
   run_command(cmake_cmd, cwd=build_path, verbose=args.verbose)
