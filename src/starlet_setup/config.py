@@ -83,7 +83,7 @@ def get_config_value(
 
   Args:
     config: Configuration dictionary
-    key: Dot-separated key path (e.g, 'defaults.ssh')
+    key: Dot-separated key path (e.g, 'configs.default.ssh')
     default: Default value if key not found
   """
   parts = key.split('.')
