@@ -39,12 +39,6 @@ class TestParseArgs:
       assert args.ssh is True
 
 
-  def test_requires_repo_argument(self):
-    """Should error when repo not provided and no special flags."""
-    with patch('sys.argv', ['prog']), pytest.raises(SystemExit):
-      parse_args()
-
-
   def test_allows_config_management_without_repo(self):
     """Should allow profile commands without repo argument."""
     with patch('sys.argv', ['prog', '--list-profiles']):

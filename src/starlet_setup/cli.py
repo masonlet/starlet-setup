@@ -93,6 +93,7 @@ def _add_build_args(parser, config: dict[str, Any]) -> None:
   parser.add_argument(
     '-c', '--clean',
     action='store_true',
+    default=False,
     help='Clean build directory before building'
   )
 
