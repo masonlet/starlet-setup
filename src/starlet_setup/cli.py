@@ -189,9 +189,6 @@ Examples:
      or args.list_profiles or args.profile_add or args.profile_remove:
     return args
 
-  if not args.repo:
-    parser.error("Repository argument is required")
-
   if args.repos and args.profile:
     parser.error("Cannot use both --repos and --profile")
   if args.repos or args.profile:
