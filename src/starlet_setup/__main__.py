@@ -10,11 +10,15 @@ from .config import create_default_config, list_configs, add_config, remove_conf
 from .profiles import list_profiles, add_profile, remove_profile
 from .utils import check_prerequisites
 from .commands import mono_repo_mode, single_repo_mode
+from .interactive import interactive_mode
 
 
 def main() -> None:
   """Main entry point for Starlet Setup."""
   args = parse_args()
+
+  if not args.repo:
+    args = interactive_mode(args)
 
   if args.init_config:
     create_default_config()

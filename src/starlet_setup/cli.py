@@ -93,6 +93,7 @@ def _add_build_args(parser, config: dict[str, Any]) -> None:
   parser.add_argument(
     '-c', '--clean',
     action='store_true',
+    default=False,
     help='Clean build directory before building'
   )
 
@@ -188,9 +189,6 @@ Examples:
      or args.list_configs or args.config_add or args.config_remove \
      or args.list_profiles or args.profile_add or args.profile_remove:
     return args
-
-  if not args.repo:
-    parser.error("Repository argument is required")
 
   if args.repos and args.profile:
     parser.error("Cannot use both --repos and --profile")

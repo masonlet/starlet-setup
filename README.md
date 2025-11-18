@@ -4,7 +4,7 @@ A lightweight Python utility to quickly clone, configure, and build CMake projec
 [![Tests](https://github.com/masonlet/starlet-setup/actions/workflows/tests.yml/badge.svg)](https://github.com/masonlet/starlet-setup/actions/workflows/tests.yml)
 [![PyPI version](https://badge.fury.io/py/starlet-setup.svg)](https://badge.fury.io/py/starlet-setup)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
-[![Python 3.6+](https://img.shields.io/badge/python-3.6%2B-blue.svg)]()
+[![Python 3.6+](https://img.shields.io/badge/python-3.6%2B-blue.svg)](https://www.python.org/)
 
 ## Table of Contents
 - [Features](#features)
@@ -12,6 +12,7 @@ A lightweight Python utility to quickly clone, configure, and build CMake projec
 - [Installation](#installation)
 - [Configuration](#configuration)
 - [Usage](#usage)
+  - [Interactive Mode](#interactive-mode)
   - [Single Repository Mode](#single-repository-mode)
   - [Mono-Repo Mode](#mono-repository-mode)
   - [Profile Mode](#profile-mode)
@@ -19,17 +20,28 @@ A lightweight Python utility to quickly clone, configure, and build CMake projec
 - [Development](#development)
 - [License](#license)
 
-
-
 <br/>
+
 
 ## Quick start
 ```bash
 pip install starlet-setup
+
+# Interactive mode
+starlet-setup
+
+# Single-repo mode
 starlet-setup username/repo
 ```
 
 ## Features
+- **Interactive Mode**:
+  - Step-by-step instructions for all configuration options
+  - Shows default values for each setting
+  - Skips prompts for options already set via CLI flags
+  - Supports both single-repo and mono-repo workflows
+  - Choose between profile or manual repository lists
+
 - **Single Repository Mode**:
   - Clone a GitHub repository with simple `username/repo` syntax
   - Support for HTTPS (default) and SSH protocols
@@ -58,7 +70,6 @@ starlet-setup username/repo
   - Works with both single-repo and mono-repo modes
 
 <br/>
-
 
 
 ## Prerequisites
@@ -113,9 +124,7 @@ python -m starlet_setup username/repo
 ```
 </details>
 
-
 <br/>
-
 
 
 ## Configuration
@@ -133,13 +142,62 @@ Starlet Setup checks for configuration files in this order:
 - `./.starlet-setup.json` (current directory)
 - `~/.starlet-setup.json` (home directory)
 
-
-
 <br/>
 
 
-
 ## Usage
+
+### <a id="interactive-mode"></a>
+<details>
+<summary>Interactive Mode</summary>
+  
+When you run `starlet-setup` without a repository argument, it automatically enters interactive mode, guiding you through all configuration options.
+
+#### Basic Usage
+```bash
+# Start interactive mode
+starlet-setup
+
+# Interactive mode respects CLI flags (skips those prompts)
+starlet-setup --ssh --verbose
+```
+
+#### Advanced Usage
+```bash
+# Pre-set mono-repo flags, interactive asks for remaining options
+starlet-setup --mono-repo --ssh
+
+# Pre-set profile, interactive asks for repo and other settings
+starlet-setup --profile myprofile
+
+# Pre-set repos, interactive asks for test repo and other settings
+starlet-setup --repos user/lib1 user/lib2 --verbose
+
+# Combine multiple flags to skip multiple prompts
+starlet-setup --ssh --build-type Release --no-build
+```
+
+#### Example Session
+```
+Starlet Setup Interactive Mode
+Enter repository (user/repo or URL): masonlet/starlet-samples
+Use SSH? (y/n) [N]: y
+Verbose? (y/n) [N]: 
+Clean build directory if exists? (y/n) [N]: 
+Selected mode: (1) Single Repo (2) Mono-Repo: 2
+Mono-repo: (1) Use profile (2) Manual repo list: 1
+Profile name: default
+Build type [Debug]: Release
+Build directory [build]: 
+Additional CMake args (space separated): 
+Configure only (skip build)? (y/n) [N]: 
+
+Interactive mode complete
+```
+
+</br>
+</details>
+
 
 ### <a id="single-repository-mode"></a>
 <details>
@@ -179,8 +237,8 @@ starlet-setup username/repo --cmake-arg=-DCMAKE_CXX_COMPILER=clang++
 ```
 
 <br/>
-
 </details>
+
 
 ### <a id="mono-repository-mode"></a>
 <details>
@@ -275,8 +333,8 @@ This structure allows you to:
 - Commit changes without digging into build directories
 
 <br/>
-
 </details>
+
 
 ### <a id="profile-mode"></a>
 <details>
@@ -307,8 +365,8 @@ starlet-setup username/repo --profile myprofile --ssh
 ```
 
 <br/>
-
 </details>
+
 
 ### <a id="config-mode"></a>
 <details>
@@ -338,12 +396,10 @@ starlet-setup username/repo --config myconfig --verbose
 starlet-setup username/repo --mono-repo --config myconfig --ssh
 ```
 
-<br/>
-
 </details>
 
-
 <br/>
+
 
 ## Development
 
@@ -377,9 +433,7 @@ pytest -v
 ```
 </details>
 
-
 <br/>
-
 
 
 ## License
