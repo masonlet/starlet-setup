@@ -20,14 +20,14 @@ class TestResolveRepoUrl:
 
   def test_converts_shorthand_to_https(self):
     """Should convert username/repo to HTTPS."""
-    result = resolve_repo_url("masonlet/starlet-math")
-    assert result == "https://github.com/masonlet/starlet-math.git"
+    result = resolve_repo_url("starlet-libs/math")
+    assert result == "https://github.com/starlet-libs/math.git"
 
 
   def test_converts_shorthand_to_ssh(self):
     """Should convert username/repo to SSH when requested."""
-    result = resolve_repo_url("masonlet/starlet-math", use_ssh=True)
-    assert result == "git@github.com:masonlet/starlet-math.git"
+    result = resolve_repo_url("starlet-libs/math", use_ssh=True)
+    assert result == "git@github.com:starlet-libs/math.git"
 
 
 class TestGetDefaultRepos:
@@ -45,8 +45,8 @@ class TestGetDefaultRepos:
   def test_returns_hardcoded_defaults_when_config_empty(self):
     """Should fall back to built-in Starlet repos."""
     result = get_default_repos({})
-    assert "masonlet/starlet-math" in result
-    assert "masonlet/starlet-engine" in result
+    assert "starlet-libs/math" in result
+    assert "starlet-libs/engine" in result
     assert len(result) == 7
 
 
