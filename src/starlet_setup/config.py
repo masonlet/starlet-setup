@@ -111,13 +111,13 @@ def create_default_config() -> None:
     },
     "profiles": {
       "default": [
-        "masonlet/starlet-math",
-        "masonlet/starlet-logger",
-        "masonlet/starlet-controls",
-        "masonlet/starlet-scene",
-        "masonlet/starlet-graphics",
-        "masonlet/starlet-serializer",
-        "masonlet/starlet-engine"
+        "starlet-libs/math",
+        "starlet-libs/logger",
+        "starlet-libs/controls",
+        "starlet-libs/scene",
+        "starlet-libs/graphics",
+        "starlet-libs/serializer",
+        "starlet-libs/engine"
       ]
     }
   }

@@ -252,7 +252,7 @@ This flag tells your test repository to link against local modules instead of fe
 if(NOT BUILD_LOCAL)
     # Fetch dependencies from GitHub
     FetchContent_Declare(starlet_engine
-      GIT_REPOSITORY https://github.com/masonlet/starlet-engine.git 
+      GIT_REPOSITORY https://github.com/starlet-libs/engine.git
       GIT_TAG main
     )
     # ... other dependencies
@@ -301,29 +301,29 @@ starlet-setup username/repo --mono-repo --cmake-arg=-DCMAKE_CXX_COMPILER=clang++
 
 #### Default Repositories (🚀 Starlet Ecosystem)
 When using mono-repo mode without `--repos` or `--profile`, the script clones repositories based on your configuration. The default profile includes:
-- `masonlet/starlet-math`
-- `masonlet/starlet-logger`
-- `masonlet/starlet-controls`
-- `masonlet/starlet-scene`
-- `masonlet/starlet-graphics`
-- `masonlet/starlet-serializer`
-- `masonlet/starlet-engine`
+- `starlet-libs/math`
+- `starlet-libs/logger`
+- `starlet-libs/controls`
+- `starlet-libs/scene`
+- `starlet-libs/graphics`
+- `starlet-libs/serializer`
+- `starlet-libs/engine`
 - Your specified test repository (e.g., `masonlet/starlet-samples`)
 
 #### Mono-Repo Structure
 Mono-repo mode creates a workspace like this:
 ```
 build-mono/
-├── CMakeLists.txt      # Auto-generated root project
-├── starlet-math/
-├── starlet-logger/
-├── starlet-controls/
-├── starlet-scene/
-├── starlet-graphics/
-├── starlet-serializer/
-├── starlet-engine/
-├── starlet-samples/    # Your test repo
-└── build/              # Single build output
+├── CMakeLists.txt   # Auto-generated root project
+├── math/
+├── logger/
+├── controls/
+├── scene/
+├── graphics/
+├── serializer/
+├── engine/
+├── starlet-samples/ # Your test repo
+└── build/           # Single build output
 ```
 
 This structure allows you to:
