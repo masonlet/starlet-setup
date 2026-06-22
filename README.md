@@ -1,3 +1,30 @@
+# ⚠️ This Repository is Archived ⚠️
+
+This repository has been **replaced** by [**star-setup**](https://github.com/star-setup/core), a full Rust rewrite.
+
+## Why the change?
+Python/pip feels correct for a CMake-specific tool, but with my future plans of expanding to work with multiple build systems it feels awkward to keep it as python. Rust is faster and easier to distribute, while keeping the same flow as starlet-setup.
+
+## Quick Start with star-setup
+
+```bash
+# Homebrew (macOS/Linux)
+brew install star-setup/tap/star-setup
+
+# npm
+npm install -g @star-setup/star-setup
+
+# Shell (Linux/macOS)
+curl --proto '=https' --tlsv1.2 -LsSf https://github.com/star-setup/core/releases/latest/download/star-setup-installer.sh | sh
+
+# PowerShell (Windows)
+powershell -ExecutionPolicy Bypass -c "irm https://github.com/star-setup/core/releases/latest/download/star-setup-installer.ps1 | iex"
+```
+
+See [star-setup/core](https://github.com/star-setup/core) for full documentation.
+
+---
+
 # Starlet Setup
 A lightweight Python utility to quickly clone, configure, and build CMake projects — from single repos to full mono-repos.
 
